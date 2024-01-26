@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import uuid4
 from .schemas import UserCreateSchema, UserSchema, UserUpdateSchema
 from typing import Dict
@@ -25,4 +26,5 @@ def update_user(
 ) -> UserSchema:
     for key, value in user_update.model_dump(exclude_unset=partial).items():
         setattr(user, key, value)
+    user.modified_at = datetime.utcnow()
     return user
