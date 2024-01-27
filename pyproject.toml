@@ -18,6 +18,7 @@ bcrypt = "^4.1.2"
 python-multipart = "^0.0.6"
 psycopg2-binary = "^2.9.9"
 asyncpg = "^0.29.0"
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.4"
