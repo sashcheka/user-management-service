@@ -1,8 +1,8 @@
-"""create users and groups tables
+"""created users and groups tables
 
-Revision ID: 4d3a461b761f
+Revision ID: cfd7e3cca67e
 Revises: 
-Create Date: 2024-01-26 14:37:06.739460
+Create Date: 2024-01-27 22:16:27.040619
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "4d3a461b761f"
+revision: str = "cfd7e3cca67e"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -39,7 +39,7 @@ def upgrade() -> None:
         sa.Column("name", sa.String(length=50), nullable=False),
         sa.Column("surname", sa.String(length=50), nullable=False),
         sa.Column("username", sa.String(length=50), nullable=False),
-        sa.Column("hashed_password", sa.String(length=128), nullable=False),
+        sa.Column("password", sa.String(length=128), nullable=False),
         sa.Column("phone_number", sa.String(length=20), nullable=True),
         sa.Column("email", sa.String(length=100), nullable=False),
         sa.Column(
@@ -54,7 +54,7 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.Column("modified_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("modified_at", sa.DateTime(timezone=True), nullable=True),
         sa.ForeignKeyConstraint(
             ["group_id"],
             ["groups.id"],
