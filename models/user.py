@@ -27,7 +27,7 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     surname: Mapped[str] = mapped_column(String(50), nullable=False)
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
-    hashed_password: Mapped[str] = mapped_column(String(128), nullable=False)
+    password: Mapped[str] = mapped_column(String(128), nullable=False)
     phone_number: Mapped[str] = mapped_column(String(20), nullable=True)
     email: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     role: Mapped["Role"] = mapped_column(Enum(Role), nullable=False)
@@ -38,7 +38,11 @@ class User(Base):
         DateTime(timezone=True), default=datetime.utcnow(), server_default=func.now()
     )
     modified_at: Mapped[DateTime] = mapped_column(
-        DateTime(timezone=True), onupdate=func.now()
+        DateTime(timezone=True),
+        default=None,
+        server_default=None,
+        onupdate=func.now(),
+        nullable=True,
     )
 
     group: Mapped["Group"] = relationship("Group", back_populates="users")
