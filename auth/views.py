@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Body, status, Form
+from fastapi import APIRouter, HTTPException, Depends, Body, status, Form
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 import jwt
@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from jwt.exceptions import InvalidTokenError
 
 from core.config import settings
-import utils
+from . import utils
 import redis
 
 PRIVATE_KEY = settings.auth_jwt.private_key_path.read_text()
@@ -15,10 +15,10 @@ ALGORITHM = "RS512"
 ACCESS_TOKEN_EXPIRE_MINUTES = 3
 REFRESH_TOKEN_EXPIRE_MINUTES = 15
 
-app = FastAPI()
+router = APIRouter(prefix="/auth", tags=["Auth"])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login/")
-redis_client = redis.Redis(host="localhost", port=6379, db=0)
+redis_client = redis.Redis(host="redis", port=6379, db=0)
 
 
 class UserSignup(BaseModel):
@@ -165,7 +165,7 @@ def get_current_active_auth_user(
     )
 
 
-@app.post("/auth/signup/")
+@router.post("/signup/")
 def signup(user: UserSignup):
     if user.username in fake_users_db:
         raise HTTPException(status_code=400, detail="Username already registered")
@@ -178,7 +178,7 @@ def signup(user: UserSignup):
     return {"user": user, "message": f"User {user.username} created successfully."}
 
 
-@app.post("/auth/login/", response_model=Token)
+@router.post("/login/", response_model=Token)
 def auth_user_issue_jwt(user: UserLogin = Depends(validate_auth_user)):
     jwt_payload = {
         "sub": user.username,
@@ -202,7 +202,7 @@ def auth_user_issue_jwt(user: UserLogin = Depends(validate_auth_user)):
     }
 
 
-@app.post("/auth/refresh-token/", response_model=Token)
+@router.post("/refresh-token/", response_model=Token)
 def refresh_token(refresh_token: str = Body(...)):
     user_dict = verify_refresh_token(refresh_token)
     if not user_dict:
@@ -223,7 +223,7 @@ def refresh_token(refresh_token: str = Body(...)):
     return {"access_token": access_token, "refresh_token": new_refresh_token}
 
 
-@app.get("/users/me/")
+@router.get("/users/me/")
 def auth_user_check_self_info(
     payload: dict = Depends(get_current_token_payload),
     user: UserLogin = Depends(get_current_active_auth_user),
