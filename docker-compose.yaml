@@ -2,8 +2,6 @@ services:
   web:
     build: .
     command: sh -c "alembic upgrade head && python main.py"
-    env_file:
-      - .env
     ports:
       - 8000:8000
     volumes:
@@ -17,6 +15,11 @@ services:
       POSTGRES_DB: demo_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+
+  redis:
+    image: redis:latest
+    ports:
+      - 6379:6379
 
 volumes:
   postgres_data:
