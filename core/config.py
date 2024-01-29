@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings
 BASE_DIR = Path(__file__).parent.parent
 USER = "postgres"
 PASSWORD = "postgres"
-HOST = "localhost"
+HOST = "db"
 PORT = "5432"
 DB_NAME = "demo_db"
 
