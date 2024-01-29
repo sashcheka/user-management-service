@@ -15,8 +15,17 @@ class DbSetting(BaseModel):
     echo: bool = True
 
 
+class AuthJWT(BaseModel):
+    private_key_path: Path = BASE_DIR / "certs" / "private_key.pem"
+    public_key_path: Path = BASE_DIR / "certs" / "public_key.pem"
+    algorithm: str = "RS512"
+    access_token_expire_minutes: int = 3
+    refresh_token_expire_minutes: int = 15
+
+
 class Settings(BaseSettings):
     db: DbSetting = DbSetting()
+    auth_jwt: AuthJWT = AuthJWT()
 
 
 settings = Settings()
