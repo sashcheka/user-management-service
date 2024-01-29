@@ -1,17 +1,17 @@
 from datetime import datetime
 from uuid import uuid4
 
+from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .schemas import (
-    UserSchema,
-    UserCreateSchema,
-    UserUpdateSchema,
-    UserUpdatePartialSchema,
-)
-from passlib.context import CryptContext
 from models.user import User
 
+from .schemas import (
+    UserCreateSchema,
+    UserSchema,
+    UserUpdatePartialSchema,
+    UserUpdateSchema,
+)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

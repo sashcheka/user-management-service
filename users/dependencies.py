@@ -1,16 +1,12 @@
 from typing import Annotated
 
-from fastapi import (
-    HTTPException,
-    status,
-    Path,
-    Depends,
-)
+from fastapi import Depends, HTTPException, Path, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db_helper import db_helper
-from . import crud
 from models.user import User
+
+from . import crud
 
 
 async def user_by_id(

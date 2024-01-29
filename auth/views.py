@@ -1,13 +1,15 @@
-from fastapi import APIRouter, HTTPException, Depends, Body, status, Form
-from fastapi.security import OAuth2PasswordBearer
-from pydantic import BaseModel
-import jwt
 from datetime import datetime, timedelta
+
+import jwt
+import redis
+from fastapi import APIRouter, Body, Depends, Form, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
+from pydantic import BaseModel
 
 from core.config import settings
+
 from . import utils
-import redis
 
 PRIVATE_KEY = settings.auth_jwt.private_key_path.read_text()
 PUBLIC_KEY = settings.auth_jwt.public_key_path.read_text()

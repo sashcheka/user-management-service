@@ -1,14 +1,7 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import (
-    String,
-    DateTime,
-)
-from sqlalchemy.orm import (
-    relationship,
-    Mapped,
-    mapped_column,
-)
+from sqlalchemy import DateTime, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from .base import Base

@@ -1,6 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
-from pydantic import BaseModel, EmailStr, UUID4
+
+from pydantic import UUID4, BaseModel, EmailStr
 
 from models.role import Role
 
