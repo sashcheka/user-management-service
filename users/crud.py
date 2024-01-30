@@ -1,34 +1,14 @@
 from datetime import datetime
 from uuid import uuid4
 
-from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import User
-
 from .schemas import (
-    UserCreateSchema,
     UserSchema,
     UserUpdatePartialSchema,
     UserUpdateSchema,
 )
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-async def create_user(
-    session: AsyncSession,
-    user_in: UserCreateSchema,
-) -> User:
-    user_data = user_in.model_dump()
-    user_data["id"] = uuid4()
-    hashed_password = pwd_context.hash(user_data["password"])
-    user_data["password"] = hashed_password
-
-    user = User(**user_data)
-    session.add(user)
-    await session.commit()
-    return user
 
 
 async def get_user(
