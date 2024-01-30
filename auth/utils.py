@@ -6,10 +6,11 @@ import redis
 from fastapi import Depends, Form, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
+from pydantic import UUID4
 
 from core.config import settings
 
-from .temp_models import UserLogin, UserSignup
+from .temp_models import UserCreate, UserLogin, UserSignup
 
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.auth_jwt.access_token_expire_minutes
 REFRESH_TOKEN_EXPIRE_MINUTES = settings.auth_jwt.refresh_token_expire_minutes
@@ -19,7 +20,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login/")
 redis_client = redis.Redis(host="redis", port=6379, db=0)
 
 
-fake_users_db: dict[str, UserLogin] = {}
+fake_users_db: dict[UUID4, UserCreate] = {}
 
 
 def validate_auth_user(
@@ -52,7 +53,8 @@ def validate_auth_user(
 def verify_refresh_token(token: str):
     if not redis_client.exists(token):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token",
         )
     redis_client.delete(token)
 
@@ -84,9 +86,9 @@ def get_current_token_payload(
 
 def get_current_auth_user(
     payload: dict = Depends(get_current_token_payload),
-) -> UserLogin:
-    username: str | None = payload.get("sub")
-    if user := fake_users_db.get(username):
+) -> UserCreate:
+    user_id: UUID4 = payload.get("sub")
+    if user := fake_users_db.get(user_id):
         return user
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

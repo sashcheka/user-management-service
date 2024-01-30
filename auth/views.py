@@ -1,29 +1,40 @@
+from uuid import uuid4
+
 from fastapi import APIRouter, Body
 
-from .temp_models import UserCreate
+from users.schemas import UserCreateSchema
+
 from .utils import *
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post("/signup/")
-def signup(user: UserSignup):
+def signup(user: UserCreateSchema):
     if user.username in fake_users_db:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already registered",
         )
 
-    user.password = hash_password(user.password)
-
-    fake_users_db[user.username] = UserLogin(
-        username=user.username, password=user.password
+    hashed_password = hash_password(user.password)
+    user_id = uuid4()
+    user_create = UserCreate(
+        id=user_id,
+        username=user.username,
+        password=hashed_password,
+        email=user.email,
+        active=user.active,
     )
-    return {"user": user, "message": f"User {user.username} created successfully."}
+    fake_users_db[user_id] = user_create
+    return {
+        "user": user_create,
+        "message": f"User {user.username} created successfully.",
+    }
 
 
 @router.post("/login/")
-def auth_user_issue_jwt(user: UserLogin = Depends(validate_auth_user)):
+def login(user: UserLogin = Depends(validate_auth_user)):
     user = UserCreate(**user.model_dump())
     payload = {
         "sub": user.id,
@@ -70,7 +81,7 @@ def auth_user_check_self_info(
 ):
     iat = payload.get("iat")
     return {
-        "username": user.username,
+        "user": user,
         "logged_in_at": iat,
     }
 
