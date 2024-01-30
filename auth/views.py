@@ -1,45 +1,38 @@
-from uuid import uuid4
+from fastapi import APIRouter, Depends, Body, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from fastapi import APIRouter, Body
-
-from users.schemas import UserCreateSchema
-
-from .utils import *
+from core.db_helper import db_helper
+from users.schemas import UserCreateSchema, UserSchema
+from . import crud
+from .dependencies import get_current_token_payload, get_current_active_auth_user
+from .schemas import UserLoginSchema
+from .tokens import (
+    validate_auth_user,
+    create_access_token,
+    create_refresh_token,
+    redis_client,
+    REFRESH_TOKEN_EXPIRE_MINUTES,
+    verify_refresh_token,
+)
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post("/signup/")
-def signup(user: UserCreateSchema):
-    if user.username in fake_users_db:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username already registered",
-        )
-
-    hashed_password = hash_password(user.password)
-    user_id = uuid4()
-    user_create = UserCreate(
-        id=user_id,
-        username=user.username,
-        password=hashed_password,
-        email=user.email,
-        active=user.active,
-    )
-    fake_users_db[user_id] = user_create
-    return {
-        "user": user_create,
-        "message": f"User {user.username} created successfully.",
-    }
+async def signup(
+    user_in: UserCreateSchema,
+    session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
+):
+    return await crud.create_user(session=session, user_in=user_in)
 
 
 @router.post("/login/")
-def login(user: UserLogin = Depends(validate_auth_user)):
-    user = UserCreate(**user.model_dump())
+async def login(user: UserLoginSchema = Depends(validate_auth_user)):
     payload = {
-        "sub": user.id,
+        "sub": str(user.id),
         "username": user.username,
         "email": user.email,
+        "password": user.password,
     }
 
     access_token = create_access_token(payload=payload)
@@ -51,6 +44,18 @@ def login(user: UserLogin = Depends(validate_auth_user)):
         "access_token": access_token,
         "token_type": "Bearer",
         "refresh_token": refresh_token,
+    }
+
+
+@router.get("/users/me/")
+def auth_user_check_self_info(
+    payload: dict = Depends(get_current_token_payload),
+    user: UserSchema = Depends(get_current_active_auth_user),
+):
+    iat = payload.get("iat")
+    return {
+        "user": user,
+        "logged_in_at": iat,
     }
 
 
@@ -72,21 +77,3 @@ def refresh_token(refresh_token_in: str = Body(...)):
         "token_type": "Bearer",
         "refresh_token": new_refresh_token,
     }
-
-
-@router.get("/users/me/")
-def auth_user_check_self_info(
-    payload: dict = Depends(get_current_token_payload),
-    user: UserLogin = Depends(get_current_active_auth_user),
-):
-    iat = payload.get("iat")
-    return {
-        "user": user,
-        "logged_in_at": iat,
-    }
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
