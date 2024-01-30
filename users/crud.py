@@ -16,7 +16,7 @@ from .schemas import (
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-async def create_user_async(
+async def create_user(
     session: AsyncSession,
     user_in: UserCreateSchema,
 ) -> User:

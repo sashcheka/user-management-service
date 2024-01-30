@@ -20,7 +20,7 @@ async def create_user(
     user_in: UserCreateSchema,
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
 ):
-    return await crud.create_user_async(session=session, user_in=user_in)
+    return await crud.create_user(session=session, user_in=user_in)
 
 
 @router.get("/{user_id}/", response_model=UserSchema)

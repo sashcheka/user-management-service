@@ -1,10 +1,10 @@
-from pydantic import UUID4, BaseModel
+from pydantic import UUID4, BaseModel, EmailStr
 
 
 class User(BaseModel):
     username: str
     password: str
-    email: str | None = None
+    email: EmailStr | None = None
     active: bool = True
 
 
@@ -18,3 +18,4 @@ class UserLogin(User):
 
 class UserCreate(User):
     id: UUID4
+    password: bytes
