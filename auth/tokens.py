@@ -1,32 +1,26 @@
 from datetime import datetime, timedelta
 
-import bcrypt
 import jwt
-import redis
-from fastapi import Depends, Form, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-from jwt.exceptions import InvalidTokenError
-from pydantic import UUID4
+from fastapi import HTTPException, status, Depends, Form
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from auth.schemas import UserLoginSchema
 from core.config import settings
-
-from .temp_models import UserCreate, UserLogin, UserSignup
+from core.db_helper import db_helper
+from core.redis_helper import redis_client
+from core.utils import validate_password
+from models import User
 
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.auth_jwt.access_token_expire_minutes
 REFRESH_TOKEN_EXPIRE_MINUTES = settings.auth_jwt.refresh_token_expire_minutes
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login/")
-redis_client = redis.Redis(host="redis", port=6379, db=0)
-
-
-fake_users_db: dict[UUID4, UserCreate] = {}
-
-
-def validate_auth_user(
+async def validate_auth_user(
     username: str = Form(),
     password: str = Form(),
-):
+    session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
+) -> User:
     unauthed_exp = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid username or password",
@@ -36,17 +30,18 @@ def validate_auth_user(
         detail="User inactive",
     )
 
-    if not (user := fake_users_db.get(username)):
+    result = await session.execute(select(User).where(User.username == username))
+    user = result.scalars().first()
+
+    if not user:
         raise unauthed_exp
 
-    if not validate_password(
-        password=password,
-        hashed_password=user.password,
-    ):
+    if not validate_password(password=password, hashed_password=user.password):
         raise unauthed_exp
 
-    if not user.active:
+    if user.is_blocked:
         raise forbidden_exp
+
     return user
 
 
@@ -67,44 +62,6 @@ def verify_refresh_token(token: str):
         return {}
     except jwt.PyJWTError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
-
-
-def get_current_token_payload(
-    token: str = Depends(oauth2_scheme),
-) -> UserLogin:
-    try:
-        payload = decode_jwt(
-            token=token,
-        )
-    except InvalidTokenError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token error: {e}",
-        )
-    return payload
-
-
-def get_current_auth_user(
-    payload: dict = Depends(get_current_token_payload),
-) -> UserCreate:
-    user_id: UUID4 = payload.get("sub")
-    if user := fake_users_db.get(user_id):
-        return user
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Token invalid (user not found)",
-    )
-
-
-def get_current_active_auth_user(
-    user: UserSignup = Depends(get_current_auth_user),
-):
-    if user.active:
-        return user
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="User inactive",
-    )
 
 
 def create_access_token(payload: dict):
@@ -159,21 +116,3 @@ def decode_jwt(
         algorithms=[algorithm],
     )
     return decoded
-
-
-def hash_password(
-    password: str,
-) -> bytes:
-    salt = bcrypt.gensalt()
-    pdw_bytes: bytes = password.encode()
-    return bcrypt.hashpw(password=pdw_bytes, salt=salt)
-
-
-def validate_password(
-    password: str,
-    hashed_password: bytes,
-) -> bool:
-    return bcrypt.checkpw(
-        password=password.encode(),
-        hashed_password=hashed_password,
-    )
