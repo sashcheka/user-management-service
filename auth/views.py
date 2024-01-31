@@ -1,17 +1,18 @@
-from fastapi import APIRouter, Depends, Body, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db_helper import db_helper
 from users.schemas import UserCreateSchema, UserSchema
+
 from . import crud
-from .dependencies import get_current_token_payload, get_current_active_auth_user
+from .dependencies import get_current_active_auth_user, get_current_token_payload
 from .schemas import UserLoginSchema
 from .tokens import (
-    validate_auth_user,
+    REFRESH_TOKEN_EXPIRE_MINUTES,
     create_access_token,
     create_refresh_token,
     redis_client,
-    REFRESH_TOKEN_EXPIRE_MINUTES,
+    validate_auth_user,
     verify_refresh_token,
 )
 
@@ -44,18 +45,6 @@ async def login(user: UserLoginSchema = Depends(validate_auth_user)):
         "access_token": access_token,
         "token_type": "Bearer",
         "refresh_token": refresh_token,
-    }
-
-
-@router.get("/users/me/")
-def auth_user_check_self_info(
-    payload: dict = Depends(get_current_token_payload),
-    user: UserSchema = Depends(get_current_active_auth_user),
-):
-    iat = payload.get("iat")
-    return {
-        "user": user,
-        "logged_in_at": iat,
     }
 
 
