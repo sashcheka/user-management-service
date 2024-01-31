@@ -47,7 +47,6 @@ class UserUpdatePartialSchema(BaseModel):
     name: str | None = None
     surname: str | None = None
     username: str | None = None
-    password: str | None = None
     phone_number: str | None = None
     email: EmailStr | None = None
     role: Role | None = None
