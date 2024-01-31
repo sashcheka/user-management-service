@@ -13,6 +13,7 @@ class UserCreateSchema(BaseModel):
     phone_number: str
     email: EmailStr
     role: Role
+    group_name: str | None = None
     image_s3_path: str | None = None
 
 
@@ -25,22 +26,11 @@ class UserSchema(BaseModel):
     phone_number: str
     email: EmailStr
     role: Role
-    group_id: int | None = None
+    group_name: str | None = None
     image_s3_path: str | None = None
     is_blocked: bool = False
     created_at: datetime = datetime.utcnow()
     modified_at: datetime | None = None
-
-
-class UserUpdateSchema(BaseModel):
-    name: str
-    surname: str
-    username: str
-    password: str
-    phone_number: str
-    email: EmailStr
-    role: Role
-    image_s3_path: str | None = None
 
 
 class UserUpdatePartialSchema(BaseModel):
@@ -50,4 +40,5 @@ class UserUpdatePartialSchema(BaseModel):
     phone_number: str | None = None
     email: EmailStr | None = None
     role: Role | None = None
+    group_name: str | None = None
     image_s3_path: str | None = None

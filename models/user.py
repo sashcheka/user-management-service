@@ -25,7 +25,7 @@ class User(Base):
     phone_number: Mapped[str] = mapped_column(String(20), nullable=True)
     email: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     role: Mapped["Role"] = mapped_column(Enum(Role), nullable=False)
-    group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"), nullable=True)
+    group_name: Mapped[str] = mapped_column(ForeignKey("groups.name"), nullable=True)
     image_s3_path: Mapped[str] = mapped_column(String(255), nullable=True)
     is_blocked: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[DateTime] = mapped_column(
