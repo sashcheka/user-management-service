@@ -1,12 +1,12 @@
 from datetime import datetime
-from uuid import uuid4
 
+from pydantic import UUID4
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.redis_helper import redis_client
 from models.user import User
 
-from .schemas import UserSchema, UserUpdatePartialSchema, UserUpdateSchema
+from .schemas import UserSchema, UserUpdatePartialSchema
 
 
 async def update_user(
@@ -24,7 +24,7 @@ async def update_user(
 
 async def get_user(
     session: AsyncSession,
-    user_id: uuid4,
+    user_id: UUID4,
 ) -> User | None:
     return await session.get(User, user_id)
 
