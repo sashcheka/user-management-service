@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 import jwt
-from fastapi import HTTPException, status, Depends, Form
+from fastapi import Depends, Form, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -46,22 +46,30 @@ async def validate_auth_user(
 
 
 def verify_refresh_token(token: str):
+    unauthed_exp = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid refresh token",
+    )
     if not redis_client.exists(token):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token",
-        )
+        raise unauthed_exp
     redis_client.delete(token)
 
     try:
         payload = decode_jwt(token)
-        if payload.get("exp") < datetime.utcnow().timestamp():
-            return {}
+
+        if payload.get("exp", 0) < datetime.utcnow().timestamp():
+            raise unauthed_exp
+
         return payload
+
     except jwt.ExpiredSignatureError:
-        return {}
-    except jwt.PyJWTError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+        raise unauthed_exp
+
+    except jwt.PyJWTError as jwt_error:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"JWT error: {str(jwt_error)}",
+        )
 
 
 def create_access_token(payload: dict):
