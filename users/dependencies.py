@@ -1,21 +1,33 @@
-from typing import Annotated
+from fastapi import Depends, HTTPException, status
 
-from fastapi import Depends, HTTPException, Path, status
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from core.db_helper import db_helper
-from models.user import User
-
-from . import crud
+from auth.dependencies import get_current_auth_user
+from models.role import Role
+from users.schemas import UserSchema
 
 
-async def user_by_id(
-    user_id: Annotated[str, Path],
-    session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
-) -> User:
-    user = await crud.get_user(session=session, user_id=user_id)
+def verify_admin_access(
+    user: UserSchema = Depends(get_current_auth_user),
+):
+    if user.role == Role.ADMIN:
+        return True
+    return False
 
-    if user is not None:
-        return user
 
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User not found")
+def verify_moderator_access(
+    user: UserSchema = Depends(get_current_auth_user),
+):
+    if user.role == Role.MODERATOR:
+        return True
+    return False
+
+
+def verify_admin_or_moderator_access(
+    admin: bool = Depends(verify_admin_access),
+    moderator: bool = Depends(verify_moderator_access),
+):
+    if admin or moderator:
+        return True
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="You do not have permission to access this resource.",
+    )
