@@ -5,7 +5,7 @@ from core.db_helper import db_helper
 from users.schemas import UserCreateSchema, UserSchema
 
 from . import crud
-from .dependencies import get_current_active_auth_user, get_current_token_payload
+from .dependencies import get_current_active_auth_user
 from .schemas import UserLoginSchema
 from .tokens import (
     REFRESH_TOKEN_EXPIRE_MINUTES,
@@ -49,7 +49,10 @@ async def login(user: UserLoginSchema = Depends(validate_auth_user)):
 
 
 @router.post("/refresh-token/")
-def refresh_token(refresh_token_in: str = Body(...)):
+def refresh_token(
+    _: UserSchema = Depends(get_current_active_auth_user),
+    refresh_token_in: str = Body(...),
+):
     payload = verify_refresh_token(refresh_token_in)
     if not payload:
         raise HTTPException(
