@@ -20,7 +20,7 @@ async def create_user(
 
     if group_name is not None:
         result = await session.execute(select(Group).where(Group.name == group_name))
-        group = result.scalars().first()
+        group = result.scalar()
         if not group:
             group = Group(name=group_name)
             session.add(group)
