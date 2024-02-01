@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).parent.parent
 
 
 class RedisSettings(BaseModel):
-    HOST: str = "localhost"
+    HOST: str = "redis"
     PORT: str = "6379"
     DB: str = "0"
 
@@ -15,7 +15,7 @@ class RedisSettings(BaseModel):
 class DbSettings(BaseModel):
     USER: str = "postgres"
     PASSWORD: str = "postgres"
-    HOST: str = "localhost"
+    HOST: str = "db"
     PORT: str = "5432"
     DB_NAME: str = "demo_db"
     url: str = f"postgresql+asyncpg://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB_NAME}"
