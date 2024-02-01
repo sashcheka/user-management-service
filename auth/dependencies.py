@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db_helper import db_helper
 from models import User
-from users.schemas import UserSchema
+
 from .tokens import decode_jwt
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login/")
@@ -46,8 +46,8 @@ async def get_current_auth_user(
 
 
 def get_current_active_auth_user(
-    user: UserSchema = Depends(get_current_auth_user),
-):
+    user: User = Depends(get_current_auth_user),
+) -> User:
     if not user.is_blocked:
         return user
     raise HTTPException(
