@@ -12,7 +12,12 @@ from models import User
 from models.role import Role
 
 from . import crud
-from .dependencies import user_by_id, verify_admin_or_moderator_access
+from .dependencies import (
+    get_users_list_query_params,
+    user_by_id,
+    verify_admin_or_moderator_access,
+)
+from .query_params import UsersListQueryParams
 from .schemas import UserSchema, UserUpdatePartialSchema
 
 router = APIRouter(prefix="/user", tags=["User"])
@@ -55,34 +60,30 @@ async def delete_self_info(
 
 @router.get("/users/")
 async def list_users(
-    page: int = Query(1, gt=0, lt=100),
-    limit: int = Query(10, gt=0, lt=100),
-    filter_by_name: str | None = None,
-    sort_by: str = Query("username"),
-    order_by: str = Query("asc"),
+    query_params: UsersListQueryParams = Depends(get_users_list_query_params),
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
     current_user: UserSchema = Depends(get_current_auth_user),
     _=Depends(verify_admin_or_moderator_access),
 ):
-    offset = (page - 1) * limit
+    offset = (query_params.page - 1) * query_params.limit
 
     query = select(User)
 
-    if filter_by_name:
+    if query_params.filter_by_name:
         query = query.where(
             or_(
-                User.name.ilike(f"%{filter_by_name}%"),
-                User.surname.ilike(f"%{filter_by_name}%"),
+                User.name.ilike(f"%{query_params.filter_by_name}%"),
+                User.surname.ilike(f"%{query_params.filter_by_name}%"),
             )
         )
 
     if current_user.role == Role.MODERATOR:
         query = query.where(User.group_name == current_user.group_name)
 
-    order_function = desc if order_by.lower() == "desc" else asc
-    query = query.order_by(order_function(getattr(User, sort_by)))
+    order_function = desc if query_params.order_by.lower() == "desc" else asc
+    query = query.order_by(order_function(getattr(User, query_params.sort_by)))
 
-    query = query.offset(offset).limit(limit)
+    query = query.offset(offset).limit(query_params.limit)
 
     result = await session.execute(query)
     users = result.scalars().all()

@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, Path, status
+from fastapi import Depends, HTTPException, Path, Query, status
 from pydantic import UUID4
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,6 +10,7 @@ from models import User
 from models.role import Role
 
 from . import crud
+from .query_params import UsersListQueryParams
 
 
 async def user_by_id(
@@ -36,3 +37,19 @@ def verify_admin_or_moderator_access(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to access this resource.",
         )
+
+
+def get_users_list_query_params(
+    page: int = Query(1, gt=0, lt=100),
+    limit: int = Query(10, gt=0, lt=100),
+    filter_by_name: str | None = Query(None),
+    sort_by: str = Query("username"),
+    order_by: str = Query("asc"),
+) -> UsersListQueryParams:
+    return UsersListQueryParams(
+        page=page,
+        limit=limit,
+        filter_by_name=filter_by_name,
+        sort_by=sort_by,
+        order_by=order_by,
+    )
