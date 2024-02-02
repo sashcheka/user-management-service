@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.crud import create_group, create_user
+from auth.crud import create_user, get_or_create_group
 from auth.schemas import UserLoginSchema
 from auth.tokens import generate_tokens, verify_refresh_token
 from models import User
@@ -11,7 +11,7 @@ async def create_user_controller(
     session: AsyncSession,
     user_in: UserCreateSchema,
 ) -> User:
-    await create_group(session=session, user_in=user_in)
+    group = await get_or_create_group(session=session, user_in=user_in)
     user = await create_user(session=session, user_in=user_in)
     return user
 

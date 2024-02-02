@@ -9,10 +9,10 @@ from models.user import User
 from users.schemas import UserCreateSchema
 
 
-async def create_group(
+async def get_or_create_group(
     session: AsyncSession,
     user_in: UserCreateSchema,
-) -> None:
+):
     group_name = user_in.group_name
     if group_name:
         result = await session.execute(select(Group).where(Group.name == group_name))
@@ -21,6 +21,7 @@ async def create_group(
             group = Group(name=group_name)
             session.add(group)
             await session.commit()
+            return group
 
 
 async def create_user(
