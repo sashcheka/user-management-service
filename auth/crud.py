@@ -12,16 +12,23 @@ from users.schemas import UserCreateSchema
 async def get_or_create_group(
     session: AsyncSession,
     user_in: UserCreateSchema,
-):
+) -> Group | None:
     group_name = user_in.group_name
-    if group_name:
-        result = await session.execute(select(Group).where(Group.name == group_name))
-        group = result.scalar()
-        if not group:
-            group = Group(name=group_name)
-            session.add(group)
-            await session.commit()
-            return group
+
+    if not group_name:
+        return None
+
+    group_name = user_in.group_name
+    result = await session.execute(select(Group).where(Group.name == group_name))
+    group = result.scalar()
+
+    if group:
+        return group
+
+    group = Group(name=group_name)
+    session.add(group)
+    await session.commit()
+    return group
 
 
 async def create_user(
@@ -29,8 +36,7 @@ async def create_user(
     user_in: UserCreateSchema,
 ) -> User:
     user_data = user_in.model_dump()
-    hashed_password = hash_password(user_data["password"])
-    user_data["password"] = hashed_password
+    user_data["password"] = hash_password(user_data["password"])
 
     try:
         user = User(**user_data)
@@ -41,12 +47,15 @@ async def create_user(
     except IntegrityError as e:
         await session.rollback()
 
-        if "username" in str(e.orig):
-            error_detail = "A user with this USERNAME already exists."
-        elif "email" in str(e.orig):
-            error_detail = "A user with this EMAIL already exists."
-        else:
-            error_detail = "A record with similar data already exists."
+        fields_to_check = [
+            "username",
+            "email",
+        ]
+        error_detail = "A record with similar data already exists."
+
+        for field in fields_to_check:
+            if field in str(e.orig):
+                error_detail = f"A user with this {field.upper()} already exists."
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
