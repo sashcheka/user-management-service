@@ -4,10 +4,10 @@ from fastapi import Depends, HTTPException, Path, Query, status
 from pydantic import UUID4
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.dependencies import get_current_auth_user
 from core.db_helper import db_helper
 from models import User
 from models.role import Role
+from auth.new_dependencies import get_auth_user
 
 from . import crud
 from .query_params import UsersListQueryParams
@@ -28,10 +28,11 @@ async def user_by_id(
 
 
 def verify_admin_or_moderator_access(
-    current_user: User = Depends(get_current_auth_user),
+    current_user: User = Depends(get_auth_user),
 ):
     if current_user.role in (Role.ADMIN, Role.MODERATOR):
         return True
+
     else:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

@@ -1,16 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import asc, desc, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.dependencies import (
-    get_current_active_auth_user,
-    get_current_auth_user,
-    get_current_token_payload,
-)
+from auth.new_dependencies import get_active_auth_user, get_auth_user
 from core.db_helper import db_helper
 from models import User
 from models.role import Role
-
 from . import crud
 from .dependencies import (
     get_users_list_query_params,
@@ -18,27 +13,20 @@ from .dependencies import (
     verify_admin_or_moderator_access,
 )
 from .query_params import UsersListQueryParams
-from .schemas import UserSchema, UserUpdatePartialSchema
+from .schemas import UserUpdatePartialSchema
 
 router = APIRouter(prefix="/user", tags=["User"])
 
 
 @router.get("/me/")
-async def get_self_info(
-    payload: dict = Depends(get_current_token_payload),
-    user: UserSchema = Depends(get_current_active_auth_user),
-):
-    iat = payload.get("iat")
-    return {
-        "user": user,
-        "logged_in_at": iat,
-    }
+async def read_current_user(user: User = Depends(get_active_auth_user)):
+    return user
 
 
 @router.patch("/me/")
 async def update_self_info_partial(
     user_update: UserUpdatePartialSchema,
-    user: User = Depends(get_current_active_auth_user),
+    user: User = Depends(get_active_auth_user),
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
 ):
     return await crud.update_user(
@@ -51,18 +39,18 @@ async def update_self_info_partial(
 
 @router.delete("/me/")
 async def delete_self_info(
-    user: UserSchema = Depends(get_current_active_auth_user),
+    user: User = Depends(get_active_auth_user),
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
 ):
-    user_to_delete = User(**user.model_dump())
-    return await crud.delete_user(session=session, user=user_to_delete)
+    return await crud.delete_user(session=session, user=user)
 
 
-@router.get("/users/")
+# /users/
+@router.get("s/")
 async def list_users(
     query_params: UsersListQueryParams = Depends(get_users_list_query_params),
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
-    current_user: UserSchema = Depends(get_current_auth_user),
+    current_user: User = Depends(get_auth_user),
     _=Depends(verify_admin_or_moderator_access),
 ):
     offset = (query_params.page - 1) * query_params.limit
@@ -94,7 +82,7 @@ async def list_users(
 @router.get("/{user_id}/")
 async def get_user_info(
     user: User = Depends(user_by_id),
-    current_user: UserSchema = Depends(get_current_auth_user),
+    current_user: User = Depends(get_auth_user),
     _=Depends(verify_admin_or_moderator_access),
 ):
     if user is None:
@@ -120,7 +108,7 @@ async def update_user_info(
     user_update: UserUpdatePartialSchema,
     user: User = Depends(user_by_id),
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
-    current_user: UserSchema = Depends(get_current_auth_user),
+    current_user: User = Depends(get_auth_user),
     _=Depends(verify_admin_or_moderator_access),
 ):
     if current_user.role != Role.ADMIN:
@@ -149,7 +137,7 @@ async def update_user_info(
 async def delete_user(
     user: User = Depends(user_by_id),
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
-    current_user: UserSchema = Depends(get_current_auth_user),
+    current_user: User = Depends(get_auth_user),
     _=Depends(verify_admin_or_moderator_access),
 ):
     if current_user.role != Role.ADMIN:
@@ -158,12 +146,13 @@ async def delete_user(
             detail="You do not have permission to delete this resource.",
         )
 
-    deleted_user = await crud.delete_user(session=session, user=user)
+    try:
+        await crud.delete_user(session=session, user=user)
+        return {"detail": f"User {user.name} successfully deleted"}
 
-    if not deleted_user:
+    except Exception as e:
+        await session.rollback()
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found or already deleted",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred: {str(e)}",
         )
-
-    return {"user": user, "detail": "User successfully deleted"}
