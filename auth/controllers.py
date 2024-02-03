@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.crud import create_user, get_or_create_group
 from auth.schemas import UserLoginSchema
-from auth.tokens import generate_tokens, verify_refresh_token
+from auth.tokens_utils import generate_tokens, verify_refresh_token
 from models import User
 from users.schemas import UserCreateSchema
 
@@ -21,7 +21,6 @@ def login_user_controller(user: UserLoginSchema):
         "sub": str(user.id),
         "username": user.username,
         "email": user.email,
-        "password": user.password,
     }
 
     return generate_tokens(payload)
