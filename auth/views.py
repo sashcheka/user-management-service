@@ -3,14 +3,13 @@ from fastapi import Depends, APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db_helper import db_helper
-from models import User
 from users.schemas import UserCreateSchema, UserSchema
 from .controllers import (
     create_user_controller,
     login_user_controller,
     refresh_token_controller,
 )
-from .new_dependencies import (
+from .dependencies import (
     get_auth_user_payload,
     get_active_auth_user,
 )
