@@ -1,12 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import asc, desc, or_, select
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.new_dependencies import get_active_auth_user, get_auth_user
+from auth.dependencies import get_active_auth_user, get_auth_user
 from core.db_helper import db_helper
 from models import User
-from models.role import Role
-from . import crud
+from .controllers import (
+    update_self_user_info_partial_controller,
+    delete_self_user_info_controller,
+    get_user_info_controller,
+    update_user_info_controller,
+    delete_user_info_controller,
+    list_users_info_controller,
+)
 from .dependencies import (
     get_users_list_query_params,
     user_by_id,
@@ -29,11 +34,10 @@ async def update_self_info_partial(
     user: User = Depends(get_active_auth_user),
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
 ):
-    return await crud.update_user(
+    return await update_self_user_info_partial_controller(
         session=session,
-        user_update=user_update,
         user=user,
-        partial=True,
+        user_update=user_update,
     )
 
 
@@ -42,41 +46,10 @@ async def delete_self_info(
     user: User = Depends(get_active_auth_user),
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
 ):
-    return await crud.delete_user(session=session, user=user)
-
-
-# /users/
-@router.get("s/")
-async def list_users(
-    query_params: UsersListQueryParams = Depends(get_users_list_query_params),
-    session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
-    current_user: User = Depends(get_auth_user),
-    _=Depends(verify_admin_or_moderator_access),
-):
-    offset = (query_params.page - 1) * query_params.limit
-
-    query = select(User)
-
-    if query_params.filter_by_name:
-        query = query.where(
-            or_(
-                User.name.ilike(f"%{query_params.filter_by_name}%"),
-                User.surname.ilike(f"%{query_params.filter_by_name}%"),
-            )
-        )
-
-    if current_user.role == Role.MODERATOR:
-        query = query.where(User.group_name == current_user.group_name)
-
-    order_function = desc if query_params.order_by.lower() == "desc" else asc
-    query = query.order_by(order_function(getattr(User, query_params.sort_by)))
-
-    query = query.offset(offset).limit(query_params.limit)
-
-    result = await session.execute(query)
-    users = result.scalars().all()
-
-    return users
+    return await delete_self_user_info_controller(
+        session=session,
+        user=user,
+    )
 
 
 @router.get("/{user_id}/")
@@ -85,22 +58,10 @@ async def get_user_info(
     current_user: User = Depends(get_auth_user),
     _=Depends(verify_admin_or_moderator_access),
 ):
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found.",
-        )
-
-    if (
-        current_user.role == Role.MODERATOR
-        and current_user.group_name != user.group_name
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to access this resource.",
-        )
-
-    return user
+    return await get_user_info_controller(
+        user=user,
+        current_user=current_user,
+    )
 
 
 @router.patch("/{user_id}/")
@@ -111,48 +72,38 @@ async def update_user_info(
     current_user: User = Depends(get_auth_user),
     _=Depends(verify_admin_or_moderator_access),
 ):
-    if current_user.role != Role.ADMIN:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to update this resource.",
-        )
-
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found.",
-        )
-
-    updated_user = await crud.update_user(
-        session=session,
-        user=user,
+    return await update_user_info_controller(
         user_update=user_update,
-        partial=True,
+        user=user,
+        session=session,
+        current_user=current_user,
     )
-
-    return updated_user
 
 
 @router.delete("/{user_id}/")
-async def delete_user(
+async def delete_user_info(
     user: User = Depends(user_by_id),
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
     current_user: User = Depends(get_auth_user),
     _=Depends(verify_admin_or_moderator_access),
 ):
-    if current_user.role != Role.ADMIN:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to delete this resource.",
-        )
+    return await delete_user_info_controller(
+        user=user,
+        session=session,
+        current_user=current_user,
+    )
 
-    try:
-        await crud.delete_user(session=session, user=user)
-        return {"detail": f"User {user.name} successfully deleted"}
 
-    except Exception as e:
-        await session.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred: {str(e)}",
-        )
+# /users/
+@router.get("s/")
+async def list_users_info(
+    query_params: UsersListQueryParams = Depends(get_users_list_query_params),
+    session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
+    current_user: User = Depends(get_auth_user),
+    _=Depends(verify_admin_or_moderator_access),
+):
+    return await list_users_info_controller(
+        query_params=query_params,
+        session=session,
+        current_user=current_user,
+    )
