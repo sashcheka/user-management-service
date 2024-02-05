@@ -6,6 +6,14 @@ from pydantic_settings import BaseSettings
 BASE_DIR = Path(__file__).parent.parent
 
 
+class RabbitMQSettings(BaseSettings):
+    USER: str = "guest"
+    PASSWORD: str = "guest"
+    HOST: str = "rabbitmq"
+    PORT: str = "5672"
+    CLOUDAMQP_URL: str = f"amqp://{USER}:{PASSWORD}@{HOST}:{PORT}/"
+
+
 class RedisSettings(BaseModel):
     HOST: str = "redis"
     PORT: str = "6379"
@@ -31,6 +39,7 @@ class AuthJWTSettings(BaseModel):
 
 
 class Settings(BaseSettings):
+    rabbitmq: RabbitMQSettings = RabbitMQSettings()
     r: RedisSettings = RedisSettings()
     db: DbSettings = DbSettings()
     auth_jwt: AuthJWTSettings = AuthJWTSettings()
