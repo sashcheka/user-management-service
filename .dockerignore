@@ -3,3 +3,11 @@ __pycache__/
 *.venv
 *.venv.*
 venv.*
+**/.git
+**/.gitignore
+**/venv
+**/env
+.gitignore
+Dockerfile
+docker-compose.yml
+README.md
