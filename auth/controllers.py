@@ -1,9 +1,10 @@
 from datetime import datetime
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.crud import create_user, get_or_create_group
+from auth.localstack import s3_client
 from auth.rabbitmq_consumer import get_single_message
 from auth.rabbitmq_publisher import publish_message
 from auth.schemas import UserLoginSchema
@@ -13,11 +14,21 @@ from users.schemas import UserCreateSchema
 
 
 async def create_user_controller(
-    session: AsyncSession,
     user_in: UserCreateSchema,
+    session: AsyncSession,
+    image: UploadFile,
 ) -> User:
+    image_file = await image.read(size=image.size)
+    image_s3_path = await s3_client.upload_image_to_localstack_and_get_path(
+        image_file=image_file
+    )
+
     group = await get_or_create_group(session=session, user_in=user_in)
-    user = await create_user(session=session, user_in=user_in)
+    user = await create_user(
+        session=session,
+        user_in=user_in,
+        image_s3_path=image_s3_path,
+    )
     return user
 
 
