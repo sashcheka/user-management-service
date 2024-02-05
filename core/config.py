@@ -6,6 +6,16 @@ from pydantic_settings import BaseSettings
 BASE_DIR = Path(__file__).parent.parent
 
 
+class LocalStackSettings(BaseSettings):
+    HOST: str = "localstack"
+    PORT: str = "4566"
+    aws_access_key_id: str = "aws_access_key_id"
+    aws_secret_access_key: str = "aws_secret_access_key"
+    region_name: str = "us-east-1"
+    bucket_name: str = "my-local-bucket"
+    url: str = f"http://{HOST}:{PORT}"
+
+
 class RabbitMQSettings(BaseSettings):
     USER: str = "guest"
     PASSWORD: str = "guest"
@@ -39,6 +49,7 @@ class AuthJWTSettings(BaseModel):
 
 
 class Settings(BaseSettings):
+    localstack: LocalStackSettings = LocalStackSettings()
     rabbitmq: RabbitMQSettings = RabbitMQSettings()
     r: RedisSettings = RedisSettings()
     db: DbSettings = DbSettings()
