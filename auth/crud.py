@@ -34,9 +34,11 @@ async def get_or_create_group(
 async def create_user(
     session: AsyncSession,
     user_in: UserCreateSchema,
+    image_s3_path: str,
 ) -> User:
     user_data = user_in.model_dump()
     user_data["password"] = hash_password(user_data["password"])
+    user_data["image_s3_path"] = image_s3_path
 
     try:
         user = User(**user_data)
