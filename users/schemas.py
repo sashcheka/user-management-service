@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import UUID4, BaseModel, EmailStr, Field
+from pydantic import UUID4, BaseModel, EmailStr, Field, constr, field_validator
 
 from models.role import Role
 
@@ -9,12 +9,11 @@ class UserCreateSchema(BaseModel):
     name: str = Field(..., max_length=50)
     surname: str = Field(..., max_length=50)
     username: str = Field(..., max_length=50)
-    password: str = Field(..., min_length=1, max_length=128)
+    password: str = Field(..., max_length=128)
     phone_number: str = Field(..., max_length=20)
     email: EmailStr
     role: Role
     group_name: str | None = Field(default=None, max_length=255)
-    image_s3_path: str | None = Field(default=None, max_length=255)
 
 
 class UserSchema(UserCreateSchema):
