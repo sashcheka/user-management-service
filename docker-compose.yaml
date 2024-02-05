@@ -1,12 +1,18 @@
 version: '3.8'
 services:
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     command: sh -c "alembic upgrade head && python main.py"
     ports:
       - "8000:8000"
     volumes:
       - .:/app
+    depends_on:
+      - db
+      - rabbitmq
+      - redis
 
   db:
     image: postgres:alpine
@@ -22,5 +28,17 @@ services:
     ports:
       - "6379:6379"
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
 volumes:
   postgres_data:
+  rabbitmq_data:

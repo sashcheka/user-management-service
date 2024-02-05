@@ -1,6 +1,8 @@
-FROM python:3.10-slim
+FROM python:3.10-alpine as builder
 
 WORKDIR /app
+
+RUN apk update && apk add --no-cache build-base libffi-dev openssl-dev
 
 COPY poetry.lock pyproject.toml /app/
 
@@ -11,5 +13,12 @@ ENV POETRY_VIRTUALENVS_CREATE=false \
 
 RUN poetry install
 
+FROM python:3.10-alpine
+
+WORKDIR /app
+
+COPY --from=builder /usr/local /usr/local
+
 COPY . /app
+
 CMD ["python", "main.py"]
