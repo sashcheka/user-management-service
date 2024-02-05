@@ -1,14 +1,14 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, Form, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jwt import (
-    InvalidTokenError,
-)
+from jwt import InvalidTokenError
+from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from auth.tokens_utils import decode_jwt
 from core.db_helper import db_helper
-from models import User
+from models import Role, User
+from users.schemas import UserCreateSchema
 
 security = HTTPBearer()
 
@@ -56,4 +56,26 @@ def get_active_auth_user(
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="User inactive",
+    )
+
+
+def get_user_signup_data(
+    name: str = Form(default="name", max_length=50),
+    surname: str = Form(default="surname", max_length=50),
+    username: str = Form(default="username", max_length=50),
+    password: str = Form(default="password", max_length=128),
+    phone_number: str = Form(default="123-456-7890", max_length=20),
+    email: EmailStr = Form(default="email@example.com"),
+    role: Role = Form(default=Role.USER),
+    group_name: str = Form(default=None, max_length=255),
+) -> UserCreateSchema:
+    return UserCreateSchema(
+        name=name,
+        surname=surname,
+        username=username,
+        password=password,
+        phone_number=phone_number,
+        email=email,
+        role=Role(role),
+        group_name=group_name,
     )
