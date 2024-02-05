@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db_helper import db_helper
@@ -11,7 +11,11 @@ from .controllers import (
     refresh_token_controller,
     reset_password_controller,
 )
-from .dependencies import get_active_auth_user, get_auth_user_payload
+from .dependencies import (
+    get_active_auth_user,
+    get_auth_user_payload,
+    get_user_signup_data,
+)
 from .schemas import EmailSchema, RefreshTokenSchema, UserLoginSchema
 from .validators import auth_user_validator
 
@@ -20,10 +24,15 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post("/signup/")
 async def signup(
-    user_in: UserCreateSchema,
+    user_in: UserCreateSchema = Depends(get_user_signup_data),
+    image: UploadFile = File(...),
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
 ):
-    return await create_user_controller(session=session, user_in=user_in)
+    return await create_user_controller(
+        user_in=user_in,
+        session=session,
+        image=image,
+    )
 
 
 @router.post("/login/")
