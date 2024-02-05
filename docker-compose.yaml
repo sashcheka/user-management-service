@@ -13,6 +13,7 @@ services:
       - db
       - rabbitmq
       - redis
+      - localstack
 
   db:
     image: postgres:alpine
@@ -39,6 +40,19 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
 
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+      - DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - localstack_data:/var/lib/localstack
+
 volumes:
   postgres_data:
   rabbitmq_data:
+  localstack_data:
