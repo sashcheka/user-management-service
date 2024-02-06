@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.schemas import UserLoginSchema
 from core.db_helper import db_helper
-from core.utils import validate_password
+from core.password_utils import validate_password
 from models import User
 
 

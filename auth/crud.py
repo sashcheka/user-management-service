@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.utils import hash_password
+from core.password_utils import hash_password
 from models import Group
 from models.user import User
 from users.schemas import UserCreateSchema
