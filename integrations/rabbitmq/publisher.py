@@ -11,7 +11,7 @@ def publish_message(
     routing_key: str,
     message: dict,
 ):
-    url = settings.rabbitmq.CLOUDAMQP_URL
+    url = settings.rabbitmq.url
     params = pika.URLParameters(url)
     connection = pika.BlockingConnection(params)
     channel = connection.channel()

@@ -4,11 +4,11 @@ from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.crud import create_user, get_or_create_group
-from auth.localstack import s3_client
-from auth.rabbitmq_consumer import get_single_message
-from auth.rabbitmq_publisher import publish_message
 from auth.schemas import UserLoginSchema
 from auth.tokens_utils import generate_tokens, verify_refresh_token
+from integrations.localstack.localstack import s3_client
+from integrations.rabbitmq.consumer import get_single_message
+from integrations.rabbitmq.publisher import publish_message
 from models import User
 from users.schemas import UserCreateSchema
 

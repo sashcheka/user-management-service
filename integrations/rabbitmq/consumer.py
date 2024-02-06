@@ -6,7 +6,7 @@ from core.config import settings
 
 
 def get_single_message(queue):
-    url = settings.rabbitmq.CLOUDAMQP_URL
+    url = settings.rabbitmq.url
     params = pika.URLParameters(url)
     connection = pika.BlockingConnection(params)
     channel = connection.channel()
