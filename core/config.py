@@ -13,7 +13,10 @@ class LocalStackSettings(BaseSettings):
     aws_secret_access_key: str = "aws_secret_access_key"
     region_name: str = "us-east-1"
     bucket_name: str = "my-local-bucket"
-    url: str = f"http://{HOST}:{PORT}"
+
+    @property
+    def url(self) -> str:
+        return f"http://{self.HOST}:{self.PORT}"
 
 
 class RabbitMQSettings(BaseSettings):
@@ -21,7 +24,10 @@ class RabbitMQSettings(BaseSettings):
     PASSWORD: str = "guest"
     HOST: str = "rabbitmq"
     PORT: str = "5672"
-    CLOUDAMQP_URL: str = f"amqp://{USER}:{PASSWORD}@{HOST}:{PORT}/"
+
+    @property
+    def url(self) -> str:
+        return f"amqp://{self.USER}:{self.PASSWORD}@{self.HOST}:{self.PORT}/"
 
 
 class RedisSettings(BaseModel):
@@ -36,8 +42,11 @@ class DbSettings(BaseModel):
     HOST: str = "db"
     PORT: str = "5432"
     DB_NAME: str = "demo_db"
-    url: str = f"postgresql+asyncpg://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB_NAME}"
     echo: bool = True
+
+    @property
+    def url(self) -> str:
+        return f"postgresql+asyncpg://{self.USER}:{self.PASSWORD}@{self.HOST}:{self.PORT}/{self.DB_NAME}"
 
 
 class AuthJWTSettings(BaseModel):
