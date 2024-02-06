@@ -3,11 +3,11 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt import InvalidTokenError
 from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
 
 from auth.tokens_utils import decode_jwt
 from core.db_helper import db_helper
 from models import Role, User
+from users.crud import get_user
 from users.schemas import UserCreateSchema
 
 security = HTTPBearer()
@@ -34,9 +34,11 @@ async def get_auth_user(
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
 ) -> User:
     user_id = payload.get("sub")
-    stmt = select(User).where(User.id == user_id)
-    result = await session.execute(stmt)
-    user: User = result.scalar()
+    # stmt = select(User).where(User.id == user_id)
+    # result = await session.execute(stmt)
+    # user: User = result.scalar()
+
+    user = await get_user(session=session, user_id=user_id)
 
     if user:
         return user
