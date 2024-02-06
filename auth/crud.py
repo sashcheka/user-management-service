@@ -3,6 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from auth.schemas import UserLoginSchema
 from core.password_utils import hash_password
 from models import Group
 from models.user import User
@@ -70,3 +71,14 @@ async def create_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred: {str(e)}",
         )
+
+
+async def get_user_by_username(
+    session: AsyncSession,
+    user_in: UserLoginSchema,
+) -> User | None:
+    result = await session.execute(
+        select(User).where(User.username == user_in.username)
+    )
+    user = result.scalar()
+    return user

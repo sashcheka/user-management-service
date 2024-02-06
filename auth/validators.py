@@ -2,6 +2,7 @@ from fastapi import Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from auth.crud import get_user_by_username
 from auth.schemas import UserLoginSchema
 from core.db_helper import db_helper
 from core.password_utils import validate_password
@@ -24,11 +25,7 @@ class AuthUserValidator:
         user_in: UserLoginSchema,
         session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
     ) -> User:
-        result = await session.execute(
-            select(User).where(User.username == user_in.username)
-        )
-        user = result.scalar()
-
+        user = await get_user_by_username(session=session, user_in=user_in)
         if not user:
             raise self.unauthed_exp
 
