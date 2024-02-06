@@ -1,12 +1,15 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException, status
 from typing import List
+
+from fastapi import HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from models import User
 from models.role import Role
+
 from . import crud
 from .query_params import UsersListQueryParams
 from .schemas import UserUpdatePartialSchema
-from models import User
-from .utils import require_role, ensure_user_exists
+from .utils import ensure_user_exists, require_role
 
 
 async def update_self_user_info_partial_controller(
@@ -109,34 +112,3 @@ async def list_users_info_controller(
         order_by=query_params.order_by,
         current_user=current_user,
     )
-
-
-# async def list_users_info_controller(
-#     query_params: UsersListQueryParams,
-#     session: AsyncSession,
-#     current_user: User,
-# ):
-#     offset = (query_params.page - 1) * query_params.limit
-#
-#     query = select(User)
-#
-#     if query_params.filter_by_name:
-#         query = query.where(
-#             or_(
-#                 User.name.ilike(f"%{query_params.filter_by_name}%"),
-#                 User.surname.ilike(f"%{query_params.filter_by_name}%"),
-#             )
-#         )
-#
-#     if current_user.role == Role.MODERATOR:
-#         query = query.where(User.group_name == current_user.group_name)
-#
-#     order_function = desc if query_params.order_by.lower() == "desc" else asc
-#     query = query.order_by(order_function(getattr(User, query_params.sort_by)))
-#
-#     query = query.offset(offset).limit(query_params.limit)
-#
-#     result = await session.execute(query)
-#     users = result.scalars().all()
-#
-#     return users
