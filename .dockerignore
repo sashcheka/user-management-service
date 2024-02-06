@@ -1,13 +1,40 @@
-venv/
+# Byte-compiled / optimized / DLL files
 __pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
 *.venv
 *.venv.*
 venv.*
-**/.git
-**/.gitignore
 **/venv
 **/env
+
+# Git and version control
+.git/
 .gitignore
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Editor directories and files
+.idea/
+*.swp
+*.swo
+.vscode/
+
+# Files and folders specific to the local development
+.dockerignore
 Dockerfile
 docker-compose.yml
+
+# Documentation
 README.md
