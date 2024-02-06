@@ -11,7 +11,7 @@ RUN pip install poetry
 ENV POETRY_VIRTUALENVS_CREATE=false \
     POETRY_NO_INTERACTION=1
 
-RUN poetry install
+RUN poetry install --no-dev
 
 FROM python:3.10-alpine
 
