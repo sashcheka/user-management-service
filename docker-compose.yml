@@ -21,6 +21,10 @@ services:
     image: postgres:alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: demo_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
 
   redis:
     image: redis:alpine
