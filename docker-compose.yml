@@ -14,15 +14,13 @@ services:
       - rabbitmq
       - redis
       - localstack
+    env_file:
+      - .env
 
   db:
     image: postgres:alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: demo_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
 
   redis:
     image: redis:alpine
@@ -36,19 +34,11 @@ services:
       - "15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
 
   localstack:
     image: localstack/localstack
     ports:
       - "4566:4566"
-    environment:
-      - SERVICES=s3
-      - DEFAULT_REGION=us-east-1
-      - AWS_ACCESS_KEY_ID=test
-      - AWS_SECRET_ACCESS_KEY=test
     volumes:
       - localstack_data:/var/lib/localstack
 
