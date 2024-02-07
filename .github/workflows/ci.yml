@@ -25,14 +25,14 @@ jobs:
 
     - name: Build with Docker
       run: |
-        docker-compose -f docker-compose.ci.yml up --build -d
+        docker-compose -f docker-compose.yml up --build -d
 
     - name: Test with Docker
       run: |
-        docker-compose -f docker-compose.ci.yml run web pytest
+        docker-compose -f docker-compose.yml run web pytest
 
     - name: Push to Docker Registry
       if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
       run: |
         echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-        docker-compose -f docker-compose.ci.yml push web
+        docker-compose -f docker-compose.yml push web
