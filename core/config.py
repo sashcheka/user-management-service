@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from pydantic import BaseModel
@@ -7,12 +8,12 @@ BASE_DIR = Path(__file__).parent.parent
 
 
 class LocalStackSettings(BaseSettings):
-    HOST: str = "localstack"
-    PORT: str = "4566"
-    aws_access_key_id: str = "aws_access_key_id"
-    aws_secret_access_key: str = "aws_secret_access_key"
-    region_name: str = "us-east-1"
-    bucket_name: str = "my-local-bucket"
+    HOST: str = os.environ.get("LOCALSTACK_HOST")
+    PORT: str = os.environ.get("LOCALSTACK_PORT")
+    aws_access_key_id: str = os.environ.get("AWS_ACCESS_KEY_ID")
+    aws_secret_access_key: str = os.environ.get("AWS_SECRET_ACCESS_KEY")
+    region_name: str = os.environ.get("REGION_NAME")
+    bucket_name: str = os.environ.get("BUCKET_NAME")
 
     @property
     def url(self) -> str:
