@@ -11,27 +11,17 @@ services:
       - rabbitmq
       - redis
       - localstack
+    env_file:
+      - env_file
 
   db:
     image: postgres:alpine
-    environment:
-      POSTGRES_DB: demo_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
 
   redis:
     image: redis:alpine
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
 
   localstack:
     image: localstack/localstack
-    environment:
-      - SERVICES=s3
-      - DEFAULT_REGION=us-east-1
-      - AWS_ACCESS_KEY_ID=test
-      - AWS_SECRET_ACCESS_KEY=test
