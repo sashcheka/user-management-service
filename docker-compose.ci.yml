@@ -1,6 +1,7 @@
 version: '3.8'
 services:
   web:
+    image: sashcheka/user-management-service-repository:tagname
     build:
       context: .
       dockerfile: Dockerfile
