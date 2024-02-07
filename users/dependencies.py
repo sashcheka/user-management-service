@@ -4,10 +4,10 @@ from fastapi import Depends, HTTPException, Path, Query, status
 from pydantic import UUID4
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from auth.dependencies import get_auth_user
 from core.db_helper import db_helper
 from models import User
 from models.role import Role
-from auth.dependencies import get_auth_user
 
 from . import crud
 from .query_params import UsersListQueryParams

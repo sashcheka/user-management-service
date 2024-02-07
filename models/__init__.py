@@ -1,4 +1,4 @@
 from .base import Base
 from .group import Group
-from .user import User
 from .role import Role
+from .user import User

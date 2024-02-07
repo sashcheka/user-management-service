@@ -4,13 +4,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from auth.dependencies import get_active_auth_user, get_auth_user
 from core.db_helper import db_helper
 from models import User
+
 from .controllers import (
-    update_self_user_info_partial_controller,
     delete_self_user_info_controller,
-    get_user_info_controller,
-    update_user_info_controller,
     delete_user_info_controller,
+    get_user_info_controller,
     list_users_info_controller,
+    update_self_user_info_partial_controller,
+    update_user_info_controller,
 )
 from .dependencies import (
     get_users_list_query_params,

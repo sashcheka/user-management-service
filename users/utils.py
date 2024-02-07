@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status
-from models import User, Role
+
+from models import Role, User
 
 
 def require_role(

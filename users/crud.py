@@ -1,13 +1,15 @@
 from datetime import datetime
+from typing import List
 
 from fastapi import HTTPException, status
 from pydantic import UUID4
-from sqlalchemy import select, or_, asc, desc
+from sqlalchemy import asc, desc, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+
 from models import Role
 from models.user import User
+
 from .schemas import UserUpdatePartialSchema
 
 
