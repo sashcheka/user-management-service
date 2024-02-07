@@ -20,8 +20,12 @@ jobs:
 
     - name: Install and run pre-commit
       run: |
-          pip install pre-commit
-          pre-commit run --all-files
+        pip install pre-commit
+        pre-commit run --all-files
+
+    - name: Create test.env file
+      run: |
+        echo "${{ secrets.TEST_ENV }}" > test.env
 
     - name: Build with Docker
       run: |
@@ -30,3 +34,8 @@ jobs:
     - name: Test with Docker
       run: |
         docker-compose -f docker-compose-test.yml run web pytest
+
+    - name: Cleanup
+      if: always()
+      run: |
+        docker-compose -f docker-compose-test.yml down

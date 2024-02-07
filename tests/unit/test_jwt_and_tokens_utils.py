@@ -5,8 +5,8 @@ import pytest
 from fastapi import HTTPException, status
 from freezegun import freeze_time
 
-from auth.jwt_utils import decode_jwt, encode_jwt
-from auth.tokens_utils import (
+from src.auth.jwt_utils import decode_jwt, encode_jwt
+from src.auth.tokens_utils import (
     create_access_token,
     create_refresh_token,
     delete_token_from_redis,

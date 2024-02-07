@@ -8,11 +8,11 @@ from core.config import settings
 
 class LocalStackS3:
     def __init__(self):
-        self.__region_name = settings.localstack.region_name
+        self.__region_name = settings.localstack.REGION_NAME
         self.__url = settings.localstack.url
-        self.__aws_access_key_id = settings.localstack.aws_access_key_id
-        self.__aws_secret_access_key = settings.localstack.aws_secret_access_key
-        self.__bucket_name = settings.localstack.bucket_name
+        self.__aws_access_key_id = settings.localstack.AWS_ACCESS_KEY_ID
+        self.__aws_secret_access_key = settings.localstack.AWS_SECRET_ACCESS_KEY
+        self.__bucket_name = settings.localstack.BUCKET_NAME
 
     def _create_s3_client(self):
         return aioboto3.Session().client(

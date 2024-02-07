@@ -3,50 +3,52 @@ services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile
-    command: sh -c "alembic upgrade head && python main.py"
+      dockerfile: src/Dockerfile
+    command: sh -c "alembic upgrade head && python src/main.py"
     ports:
-      - "8000:8000"
+      - "8001:8001"
     volumes:
-      - .:/app
+      - .:/src
     depends_on:
-      - db
-      - rabbitmq
-      - redis
-      - localstack
+      - db-test
+      - rabbitmq-test
+      - redis-test
+      - localstack-test
     env_file:
-      - .env
+      - test.env
 
-  db:
+  db-test:
     image: postgres:alpine
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_test:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: test_demo_db
+      POSTGRES_USER: test_postgres
+      POSTGRES_PASSWORD: test_postgres
+    ports:
+      - "5433:5433"
 
-  redis:
+  redis-test:
     image: redis:alpine
     ports:
-      - "6379:6379"
+      - "6380:6380"
 
-  rabbitmq:
+  rabbitmq-test:
     image: rabbitmq:3-management-alpine
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "5673:5673"
+      - "15673:15673"
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - rabbitmq_data_test:/var/lib/rabbitmq
 
-  localstack:
+  localstack-test:
     image: localstack/localstack
     ports:
-      - "4566:4566"
+      - "4567:4567"
     volumes:
-      - localstack_data:/var/lib/localstack
+      - localstack_data_test:/var/lib/localstack
 
 volumes:
-  postgres_data:
-  rabbitmq_data:
-  localstack_data:
+  postgres_data_test:
+  rabbitmq_data_test:
+  localstack_data_test:

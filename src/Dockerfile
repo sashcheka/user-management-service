@@ -4,7 +4,7 @@ WORKDIR /app
 
 RUN apk update && apk add --no-cache build-base libffi-dev openssl-dev
 
-COPY poetry.lock pyproject.toml /app/
+COPY ../poetry.lock pyproject.toml /app/
 
 RUN pip install poetry
 

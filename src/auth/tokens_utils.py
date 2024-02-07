@@ -7,8 +7,8 @@ from auth.jwt_utils import decode_jwt, encode_jwt
 from core.config import settings
 from core.redis_helper import redis_client
 
-ACCESS_TOKEN_EXPIRE_MINUTES = settings.auth_jwt.access_token_expire_minutes
-REFRESH_TOKEN_EXPIRE_MINUTES = settings.auth_jwt.refresh_token_expire_minutes
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.auth_jwt.ACCESS_TOKEN_EXPIRE_MINUTES
+REFRESH_TOKEN_EXPIRE_MINUTES = settings.auth_jwt.REFRESH_TOKEN_EXPIRE_MINUTES
 
 
 def raise_unauthorized_error(detail: str):

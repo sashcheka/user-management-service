@@ -33,7 +33,7 @@ Thumbs.db
 
 # Files and folders specific to the local development
 .dockerignore
-Dockerfile
+src/Dockerfile
 docker-compose.yml
 
 # Documentation
