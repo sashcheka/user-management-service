@@ -6,7 +6,7 @@ services:
       dockerfile: src/Dockerfile
     command: sh -c "alembic upgrade head && python src/main.py"
     ports:
-      - "8001:8001"
+      - "8001:8000"
     volumes:
       - .:/src
     depends_on:
@@ -23,28 +23,28 @@ services:
       - postgres_data_test:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: test_demo_db
-      POSTGRES_USER: test_postgres
-      POSTGRES_PASSWORD: test_postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
-      - "5433:5433"
+      - "5433:5432"
 
   redis-test:
     image: redis:alpine
     ports:
-      - "6380:6380"
+      - "6380:6379"
 
   rabbitmq-test:
     image: rabbitmq:3-management-alpine
     ports:
-      - "5673:5673"
-      - "15673:15673"
+      - "5673:5672"
+      - "15673:15672"
     volumes:
       - rabbitmq_data_test:/var/lib/rabbitmq
 
   localstack-test:
     image: localstack/localstack
     ports:
-      - "4567:4567"
+      - "4567:4566"
     volumes:
       - localstack_data_test:/var/lib/localstack
 

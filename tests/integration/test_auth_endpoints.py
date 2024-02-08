@@ -33,3 +33,9 @@ async def test_signup():
 
         assert response.status_code == 200, response.text
         assert response.json()["email"] == "testuser@example.com"
+
+
+# @pytest.mark.asyncio
+# @pytest.mark.integration
+# async def test_delete_user():
+#     pass
