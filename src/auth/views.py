@@ -36,8 +36,10 @@ async def signup(
 
 
 @router.post("/login/")
-def login(user: UserLoginSchema = Depends(auth_user_validator.validate_auth_user)):
-    return login_user_controller(user=user)
+async def login(
+    user: UserLoginSchema = Depends(auth_user_validator.validate_auth_user),
+):
+    return await login_user_controller(user=user)
 
 
 @router.post("/refresh-token/")
