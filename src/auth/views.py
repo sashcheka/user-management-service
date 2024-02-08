@@ -17,7 +17,7 @@ from .dependencies import (
     get_user_signup_data,
 )
 from .schemas import EmailSchema, RefreshTokenSchema, UserLoginSchema
-from .validators import auth_user_validator
+from .validators import validate_auth_user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -36,10 +36,10 @@ async def signup(
 
 
 @router.post("/login/")
-async def login(
-    user: UserLoginSchema = Depends(auth_user_validator.validate_auth_user),
+def login(
+    user: UserLoginSchema = Depends(validate_auth_user),
 ):
-    return await login_user_controller(user=user)
+    return login_user_controller(user=user)
 
 
 @router.post("/refresh-token/")
