@@ -31,9 +31,9 @@ jobs:
       run: |
         docker-compose -f docker-compose-test.yml up --build -d
 
-    - name: Test with Docker
+    - name: Test with Docker and Check tests coverage
       run: |
-        docker-compose -f docker-compose-test.yml run web pytest
+        docker-compose -f docker-compose-test.yml run web pytest --cov-report term --cov=src tests/ --cov-fail-under=60
 
     - name: Cleanup
       if: always()
