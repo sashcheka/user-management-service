@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Body, Depends, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,6 +30,7 @@ async def signup(
     image: UploadFile = File(...),
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
 ):
+    logging.info(f"Signup endpoint called with user: {user_in.username}")
     return await create_user_controller(
         user_in=user_in,
         session=session,
@@ -39,6 +42,7 @@ async def signup(
 def login(
     user: UserLoginSchema = Depends(validate_auth_user),
 ):
+    logging.info(f"Login endpoint called for user: {user.username}")
     return login_user_controller(user=user)
 
 
@@ -47,6 +51,7 @@ def refresh_token(
     _: UserSchema = Depends(get_active_auth_user),
     refresh_token_in: RefreshTokenSchema = Body(...),
 ):
+    logging.info(f"Refresh token endpoint called for user: {_.username}.")
     return refresh_token_controller(refresh_token=refresh_token_in.refresh_token)
 
 
@@ -60,6 +65,7 @@ def reset_password(
     email_in: EmailSchema,
     _: UserSchema = Depends(get_active_auth_user),
 ):
+    logging.info(f"Reset password endpoint called for user: {_.username}.")
     return reset_password_controller(email=email_in.email)
 
 

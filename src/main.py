@@ -1,11 +1,18 @@
+import logging
+
 import uvicorn
 from fastapi import FastAPI
 
 from auth.views import router as auth_router
+from core.logging import configure_logging
 from healthcheck.views import router as healthcheck_router
 from users.views import router as users_router
 
 app = FastAPI()
+
+configure_logging()
+logging.info("Application started")
+
 app.include_router(healthcheck_router)
 app.include_router(auth_router)
 app.include_router(users_router)
