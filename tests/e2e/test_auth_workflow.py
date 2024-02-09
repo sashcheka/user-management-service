@@ -1,32 +1,129 @@
+# import asyncio
 # from io import BytesIO
 #
-# from sqlalchemy.ext.asyncio import AsyncSession
-#
-# from src.core.db_helper import db_helper
 # import pytest
+# import pytest_asyncio
 # from httpx import AsyncClient
+# from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 #
+# from src.core.config import settings
+# from src.core.db_helper import db_helper
 # from src.main import app
 #
 #
+# @pytest.fixture()
+# def mock_user_signup_data() -> dict:
+#     user_signup_data = {
+#         "name": "test_name",
+#         "surname": "test_surname",
+#         "username": "test_username",
+#         "password": "test_password",
+#         "phone_number": "123-456-789",
+#         "email": "test_email@example.com",
+#         "role": "USER",
+#         "group_name": "test_group_name",
+#     }
+#     return user_signup_data
+#
+#
+# @pytest.fixture()
+# def mock_files() -> dict:
+#     files = {"image": ("image.jpg", BytesIO(b"fake_image_data"), "image/jpeg")}
+#     return files
+#
+#
+# @pytest.fixture()
+# def mock_user_login_data() -> dict:
+#     user_login_data = {
+#         "username": "test_username",
+#         "password": "test_password",
+#     }
+#     return user_login_data
+#
+#
+# def assert_response_data(
+#     response: dict,
+# ):
+#     assert response["name"] == "test_name"
+#     assert response["surname"] == "test_surname"
+#     assert response["username"] == "test_username"
+#     assert response["phone_number"] == "123-456-789"
+#     assert response["email"] == "test_email@example.com"
+#     assert response["role"] == "USER"
+#     assert response["group_name"] == "test_group_name"
+#
+#
+# @pytest.fixture(scope="module")
+# def event_loop():
+#     try:
+#         loop = asyncio.get_running_loop()
+#     except RuntimeError:
+#         loop = asyncio.new_event_loop()
+#     yield loop
+#     loop.close()
+#
+#
+# @pytest.fixture(scope="session")
+# def test_engine():
+#     engine = create_async_engine(url=settings.db.url, echo=True)
+#     yield engine
+#     asyncio.run(engine.dispose())
+#
+#
+# @pytest_asyncio.fixture(scope="function")
+# async def db_session(test_engine):
+#     async_session = async_sessionmaker(
+#         test_engine,
+#         expire_on_commit=False,
+#         class_=AsyncSession,
+#     )
+#     async with async_session() as session:
+#         async with session.begin():
+#             yield session
+#
+#
+# @pytest_asyncio.fixture(scope="function")
+# async def async_client(db_session):
+#     app.dependency_overrides[db_helper.scoped_session_dependencies] = lambda: db_session
+#
+#     async with AsyncClient(app=app, base_url="http://test") as client:
+#         yield client
+#
+#     app.dependency_overrides.clear()
+#
+#
 # @pytest.mark.asyncio
-# @pytest.mark.e2e
-# async def test_user_workflow(client: AsyncClient):
-#     # Step 1: Sign up
-#     signup_response = await client.post("/auth/signup/", data={...}, files={...})
-#     assert signup_response.status_code == 200
+# @pytest.mark.integration
+# async def test_auth_workflow(
+#     async_client: AsyncClient,
+#     mock_user_signup_data: dict,
+#     mock_user_login_data: dict,
+#     mock_files: dict,
+# ):
+#     signup_response = await async_client.post(
+#         "/auth/signup/",
+#         data=mock_user_signup_data,
+#         files=mock_files,
+#     )
 #
-#     # Extract user details as needed, for example:
-#     user_details = signup_response.json()
+#     assert signup_response.status_code == 200, signup_response.text
+#     assert_response_data(response=signup_response.json())
 #
-#     # Step 2: Login
-#     login_response = await client.post("/auth/login/", data={...})
-#     assert login_response.status_code == 200
+#     login_response = await async_client.post(
+#         "/auth/login/",
+#         json=mock_user_login_data,
+#     )
 #
-#     # Step 3: Update user data
-#     update_response = await client.put("/user/update/", headers={...}, json={...})
-#     assert update_response.status_code == 200
+#     assert login_response.status_code == 200, login_response.text
+#     assert "access_token" in login_response.json()
+#     assert login_response.json()["token_type"] == "Bearer"
+#     assert "refresh_token" in login_response.json()
 #
-#     # Step 4: Delete user
-#     delete_response = await client.delete(f"/user/{user_details['id']}/", headers={...})
-#     assert delete_response.status_code == 200
+#     access_token = login_response.json()["access_token"]
+#
+#     headers = {"Authorization": f"Bearer {access_token}"}
+#     delete_response = await async_client.delete(
+#         "/user/me/",
+#         headers=headers,
+#     )
+#     assert delete_response.status_code == 200, delete_response.text

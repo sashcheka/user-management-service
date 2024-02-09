@@ -11,45 +11,6 @@ from src.core.db_helper import db_helper
 from src.main import app
 
 
-@pytest.fixture(scope="session")
-def event_loop():
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest.fixture(scope="session")
-def test_engine():
-    engine = create_async_engine(url=settings.db.url, echo=True)
-    yield engine
-    asyncio.run(engine.dispose())
-
-
-@pytest_asyncio.fixture(scope="function")
-async def db_session(test_engine):
-    async_session = async_sessionmaker(
-        test_engine,
-        expire_on_commit=False,
-        class_=AsyncSession,
-    )
-    async with async_session() as session:
-        async with session.begin():
-            yield session
-
-
-@pytest_asyncio.fixture(scope="function")
-async def async_client(db_session):
-    app.dependency_overrides[db_helper.scoped_session_dependencies] = lambda: db_session
-
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        yield client
-
-    app.dependency_overrides.clear()
-
-
 @pytest.fixture()
 def mock_user_signup_data() -> dict:
     user_signup_data = {
@@ -92,6 +53,45 @@ def assert_response_data(
     assert response["group_name"] == "test_group_name"
 
 
+@pytest.fixture(scope="module")
+def event_loop():
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
+
+
+@pytest.fixture(scope="module")
+def test_engine():
+    engine = create_async_engine(url=settings.db.url, echo=True)
+    yield engine
+    asyncio.run(engine.dispose())
+
+
+@pytest_asyncio.fixture(scope="function")
+async def db_session(test_engine):
+    async_session = async_sessionmaker(
+        test_engine,
+        expire_on_commit=False,
+        class_=AsyncSession,
+    )
+    async with async_session() as session:
+        async with session.begin():
+            yield session
+
+
+@pytest_asyncio.fixture(scope="function")
+async def async_client(db_session):
+    app.dependency_overrides[db_helper.scoped_session_dependencies] = lambda: db_session
+
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        yield client
+
+    app.dependency_overrides.clear()
+
+
 @pytest.mark.asyncio
 @pytest.mark.integration
 async def test_signup(
@@ -124,3 +124,34 @@ async def test_login(
     assert "access_token" in response.json()
     assert response.json()["token_type"] == "Bearer"
     assert "refresh_token" in response.json()
+
+
+async def login_and_get_token(
+    async_client: AsyncClient,
+    user_login_data: dict,
+) -> str:
+    response = await async_client.post(
+        "/auth/login/",
+        json=user_login_data,
+    )
+    assert response.status_code == 200, response.text
+    token_data = response.json()
+    return token_data["access_token"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_delete_self_user(
+    async_client: AsyncClient,
+    mock_user_login_data: dict,
+):
+    access_token = await login_and_get_token(
+        async_client,
+        mock_user_login_data,
+    )
+    headers = {"Authorization": f"Bearer {access_token}"}
+    delete_response = await async_client.delete(
+        "/user/me/",
+        headers=headers,
+    )
+    assert delete_response.status_code == 200, delete_response.text
