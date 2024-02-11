@@ -38,11 +38,11 @@ class RedisSettings(BaseModel):
 
 
 class DbSettings(BaseModel):
-    USER: str = os.environ["DB_USER"]
-    PASSWORD: str = os.environ["DB_PASSWORD"]
-    HOST: str = os.environ["DB_HOST"]
-    PORT: str = os.environ["DB_PORT"]
-    DB_NAME: str = os.environ["DB_NAME"]
+    USER: str = os.environ["POSTGRES_USER"]
+    PASSWORD: str = os.environ["POSTGRES_PASSWORD"]
+    HOST: str = os.environ["POSTGRES_HOST"]
+    PORT: str = os.environ["POSTGRES_PORT"]
+    DB_NAME: str = os.environ["POSTGRES_DB"]
     echo: bool = True
 
     @property

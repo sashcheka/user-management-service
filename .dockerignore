@@ -1,42 +1,89 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+
+# CI
+.codeclimate.yml
+.travis.yml
+.taskcluster.yml
+
+# Docker
+docker-compose.yml
+Dockerfile
+.docker
+.dockerignore
+
 # Byte-compiled / optimized / DLL files
-__pycache__/
 **/__pycache__/
-*.py[cod]
-*$py.class
+**/*.py[cod]
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
 
 # Virtual environment
+.env
+.venv/
 venv/
-*.venv
-*.venv.*
-venv.*
-**/venv
-**/env
 
-# Git and version control
-.git/
-.gitignore
+# PyCharm
+.idea
 
-# Logs and databases
-*.log
-*.sql
-*.sqlite
+# Python mode for VIM
+.ropeproject
+**/.ropeproject
 
-# OS generated files
-.DS_Store
-Thumbs.db
+# Vim swap files
+**/*.swp
 
-# Editor directories and files
-.idea/
-*.swp
-*.swo
+# VS Code
 .vscode/
-
-# Files and folders specific to the local development
-.dockerignore
-src/Dockerfile
-docker-compose.yml
-
-# Documentation
-README.md
-
-*.env

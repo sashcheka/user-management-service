@@ -10,28 +10,48 @@ services:
     volumes:
       - .:/src
     depends_on:
-      - db
-      - rabbitmq
-      - redis
-      - localstack
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
     env_file:
       - dev.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthcheck/", "||", "exit", "1"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
 
   db:
     image: postgres:alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: demo_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
+    env_file:
+      - dev.env
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
 
   redis:
     image: redis:alpine
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -40,6 +60,12 @@ services:
       - "15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
 
   localstack:
     image: localstack/localstack
@@ -47,6 +73,12 @@ services:
       - "4566:4566"
     volumes:
       - localstack_data:/var/lib/localstack
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
 
 volumes:
   postgres_data:

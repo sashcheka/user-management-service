@@ -1,6 +1,6 @@
 version: '3.8'
 services:
-  web:
+  web-test:
     build:
       context: .
       dockerfile: src/Dockerfile
@@ -10,28 +10,48 @@ services:
     volumes:
       - .:/src
     depends_on:
-      - db-test
-      - rabbitmq-test
-      - redis-test
-      - localstack-test
+      db-test:
+        condition: service_healthy
+      rabbitmq-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      localstack-test:
+        condition: service_healthy
     env_file:
       - test.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthcheck/", "||", "exit", "1"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
 
   db-test:
     image: postgres:alpine
     volumes:
       - postgres_data_test:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: test_demo_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
     ports:
       - "5433:5432"
+    env_file:
+      - test.env
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
 
   redis-test:
     image: redis:alpine
     ports:
       - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
 
   rabbitmq-test:
     image: rabbitmq:3-management-alpine
@@ -40,6 +60,12 @@ services:
       - "15673:15672"
     volumes:
       - rabbitmq_data_test:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
 
   localstack-test:
     image: localstack/localstack
@@ -47,6 +73,12 @@ services:
       - "4567:4566"
     volumes:
       - localstack_data_test:/var/lib/localstack
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
 
 volumes:
   postgres_data_test:
