@@ -7,7 +7,7 @@ from core.db_helper import db_helper
 from users.schemas import UserCreateSchema, UserSchema
 
 from .controllers import (
-    consume_test_message_controller,
+    consume_message_controller,
     create_user_controller,
     login_user_controller,
     refresh_token_controller,
@@ -69,8 +69,8 @@ def reset_password(
     return reset_password_controller(email=email_in.email)
 
 
-@router.get("/consume-message-test/")
-async def consume_message_test(
+@router.get("/consume-message/")
+async def consume_message(
     _: UserSchema = Depends(get_active_auth_user),
 ):
-    return consume_test_message_controller()
+    return consume_message_controller()

@@ -33,7 +33,7 @@ jobs:
 
     - name: Test with Docker and Check tests coverage
       run: |
-        docker-compose -f docker-compose-test.yml run web-test pytest --cov-report term --cov=src tests/ --cov-fail-under=60
+        docker-compose -f docker-compose-test.yml run web-test pytest --cov-report term --cov=src tests/ --cov-fail-under=80
 
     - name: Cleanup
       if: always()

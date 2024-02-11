@@ -74,7 +74,7 @@ def reset_password_controller(email: str):
         )
 
 
-def consume_test_message_controller():
+def consume_message_controller():
     try:
         message = get_single_message(queue="reset-password-queue")
         if message:

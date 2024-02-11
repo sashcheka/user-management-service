@@ -25,7 +25,7 @@ router = APIRouter(prefix="/user", tags=["User"])
 
 
 @router.get("/me/")
-async def read_current_user(user: User = Depends(get_active_auth_user)):
+async def get_self_info(user: User = Depends(get_active_auth_user)):
     return user
 
 

@@ -1,95 +1,7 @@
-import asyncio
-from io import BytesIO
-
 import pytest
-import pytest_asyncio
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from src.core.config import settings
-from src.core.db_helper import db_helper
-from src.main import app
-
-
-@pytest.fixture()
-def mock_user_signup_data() -> dict:
-    user_signup_data = {
-        "name": "test_name",
-        "surname": "test_surname",
-        "username": "test_username",
-        "password": "test_password",
-        "phone_number": "123-456-789",
-        "email": "test_email@example.com",
-        "role": "USER",
-        "group_name": "test_group_name",
-    }
-    return user_signup_data
-
-
-@pytest.fixture()
-def mock_files() -> dict:
-    files = {"image": ("image.jpg", BytesIO(b"fake_image_data"), "image/jpeg")}
-    return files
-
-
-@pytest.fixture()
-def mock_user_login_data() -> dict:
-    user_login_data = {
-        "username": "test_username",
-        "password": "test_password",
-    }
-    return user_login_data
-
-
-def assert_response_data(
-    response: dict,
-):
-    assert response["name"] == "test_name"
-    assert response["surname"] == "test_surname"
-    assert response["username"] == "test_username"
-    assert response["phone_number"] == "123-456-789"
-    assert response["email"] == "test_email@example.com"
-    assert response["role"] == "USER"
-    assert response["group_name"] == "test_group_name"
-
-
-@pytest.fixture(scope="module")
-def event_loop():
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest.fixture(scope="module")
-def test_engine():
-    engine = create_async_engine(url=settings.db.url, echo=True)
-    yield engine
-    asyncio.run(engine.dispose())
-
-
-@pytest_asyncio.fixture(scope="function")
-async def db_session(test_engine):
-    async_session = async_sessionmaker(
-        test_engine,
-        expire_on_commit=False,
-        class_=AsyncSession,
-    )
-    async with async_session() as session:
-        async with session.begin():
-            yield session
-
-
-@pytest_asyncio.fixture(scope="function")
-async def async_client(db_session):
-    app.dependency_overrides[db_helper.scoped_session_dependencies] = lambda: db_session
-
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        yield client
-
-    app.dependency_overrides.clear()
+from tests.utils import assert_response_user_data, login_and_get_access_token
 
 
 @pytest.mark.asyncio
@@ -106,7 +18,7 @@ async def test_signup(
     )
 
     assert response.status_code == 200, response.text
-    assert_response_data(response=response.json())
+    assert_response_user_data(response=response.json())
 
 
 @pytest.mark.asyncio
@@ -126,32 +38,45 @@ async def test_login(
     assert "refresh_token" in response.json()
 
 
-async def login_and_get_token(
-    async_client: AsyncClient,
-    user_login_data: dict,
-) -> str:
-    response = await async_client.post(
-        "/auth/login/",
-        json=user_login_data,
-    )
-    assert response.status_code == 200, response.text
-    token_data = response.json()
-    return token_data["access_token"]
-
-
 @pytest.mark.asyncio
-@pytest.mark.integration
-async def test_delete_self_user(
+@pytest.mark.asyncio
+async def test_reset_password(
     async_client: AsyncClient,
     mock_user_login_data: dict,
 ):
-    access_token = await login_and_get_token(
+    access_token = await login_and_get_access_token(
         async_client,
         mock_user_login_data,
     )
-    headers = {"Authorization": f"Bearer {access_token}"}
-    delete_response = await async_client.delete(
-        "/user/me/",
-        headers=headers,
+
+    response = await async_client.post(
+        "/auth/reset-password/",
+        json={"email": "test_email@example.com"},
+        headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert delete_response.status_code == 200, delete_response.text
+
+    assert response.status_code == 200, response.text
+    assert (
+        response.json()["message"]
+        == "Password reset email sent on test_email@example.com."
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.asyncio
+async def test_consume_message(
+    async_client: AsyncClient,
+    mock_user_login_data: dict,
+):
+    access_token = await login_and_get_access_token(
+        async_client,
+        mock_user_login_data,
+    )
+
+    response = await async_client.get(
+        "/auth/consume-message/",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json()["message"] == "Message consumed"
