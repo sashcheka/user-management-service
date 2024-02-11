@@ -22,10 +22,10 @@ services:
       - test.env
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthcheck/", "||", "exit", "1"]
-      interval: 5s
-      timeout: 2s
-      retries: 3
-      start_period: 5s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   db-test:
     image: postgres:alpine
@@ -37,10 +37,10 @@ services:
       - test.env
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 5s
-      timeout: 2s
-      retries: 3
-      start_period: 5s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   redis-test:
     image: redis:alpine
@@ -48,10 +48,10 @@ services:
       - "6380:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 2s
-      retries: 3
-      start_period: 5s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   rabbitmq-test:
     image: rabbitmq:3-management-alpine
@@ -62,10 +62,10 @@ services:
       - rabbitmq_data_test:/var/lib/rabbitmq
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
-      interval: 5s
-      timeout: 2s
-      retries: 3
-      start_period: 5s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   localstack-test:
     image: localstack/localstack
@@ -75,10 +75,10 @@ services:
       - localstack_data_test:/var/lib/localstack
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
-      interval: 5s
-      timeout: 2s
-      retries: 3
-      start_period: 5s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
 volumes:
   postgres_data_test:
