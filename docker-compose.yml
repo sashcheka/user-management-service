@@ -1,6 +1,8 @@
 version: '3.8'
 services:
   web:
+    networks:
+      - common_network
     build:
       context: .
       dockerfile: src/Dockerfile
@@ -8,7 +10,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - .:/src
+      - .:/app
     depends_on:
       db:
         condition: service_healthy
@@ -29,6 +31,8 @@ services:
 
   db:
     image: postgres:alpine
+    networks:
+      - common_network
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -44,6 +48,8 @@ services:
 
   redis:
     image: redis:alpine
+    networks:
+      - common_network
     ports:
       - "6379:6379"
     healthcheck:
@@ -55,6 +61,8 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
+    networks:
+      - common_network
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -69,6 +77,8 @@ services:
 
   localstack:
     image: localstack/localstack
+    networks:
+      - common_network
     ports:
       - "4566:4566"
     volumes:
@@ -84,3 +94,8 @@ volumes:
   postgres_data:
   rabbitmq_data:
   localstack_data:
+
+networks:
+  common_network:
+    name: common_network
+    driver: bridge

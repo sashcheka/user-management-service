@@ -1,6 +1,8 @@
 version: '3.8'
 services:
   web-test:
+    networks:
+      - common_network
     build:
       context: .
       dockerfile: src/Dockerfile
@@ -29,6 +31,8 @@ services:
 
   db-test:
     image: postgres:alpine
+    networks:
+      - common_network
     volumes:
       - postgres_data_test:/var/lib/postgresql/data
     ports:
@@ -44,6 +48,8 @@ services:
 
   redis-test:
     image: redis:alpine
+    networks:
+      - common_network
     ports:
       - "6380:6379"
     healthcheck:
@@ -55,6 +61,8 @@ services:
 
   rabbitmq-test:
     image: rabbitmq:3-management-alpine
+    networks:
+      - common_network
     ports:
       - "5673:5672"
       - "15673:15672"
@@ -69,6 +77,8 @@ services:
 
   localstack-test:
     image: localstack/localstack
+    networks:
+      - common_network
     ports:
       - "4567:4566"
     volumes:
@@ -84,3 +94,8 @@ volumes:
   postgres_data_test:
   rabbitmq_data_test:
   localstack_data_test:
+
+networks:
+  common_network:
+    name: common_network
+    driver: bridge
