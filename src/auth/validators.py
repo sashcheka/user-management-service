@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,15 +25,18 @@ async def validate_auth_user(
 ) -> User:
     user = await get_user_by_username(session=session, user_in=user_in)
     if not user:
+        logging.exception(f"Failed to login user: {user_in.username}.")
         raise unauthed_exp
 
     if not validate_password(
         password=user_in.password,
         hashed_password=user.password,
     ):
+        logging.exception(f"Failed to login user: {user_in.username}.")
         raise unauthed_exp
 
     if user.is_blocked:
+        logging.exception(f"Failed to login user: {user_in.username}.")
         raise forbidden_exp
 
     return user
