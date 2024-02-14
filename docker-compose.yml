@@ -6,6 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    command: sh -c "alembic upgrade head && python src/main.py"
     ports:
       - "8000:8000"
     depends_on:
