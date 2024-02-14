@@ -28,7 +28,6 @@ async def update_user(
         return user
 
     except IntegrityError as e:
-        await session.rollback()
 
         error_detail = "A record with similar data already exists."
         if "username" in str(e.orig):
@@ -41,11 +40,10 @@ async def update_user(
             detail=error_detail,
         )
 
-    except Exception as e:
-        await session.rollback()
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred: {str(e)}",
+            detail=f"An error occurred.",
         )
 
 

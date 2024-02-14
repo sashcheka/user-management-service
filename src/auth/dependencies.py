@@ -21,10 +21,10 @@ async def get_auth_user_payload(
         payload = decode_jwt(
             token=token,
         )
-    except InvalidTokenError as e:
+    except InvalidTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token error: {e}",
+            detail=f"Invalid token error.",
         )
     return payload
 
@@ -34,10 +34,6 @@ async def get_auth_user(
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
 ) -> User:
     user_id = payload.get("sub")
-    # stmt = select(User).where(User.id == user_id)
-    # result = await session.execute(stmt)
-    # user: User = result.scalar()
-
     user = await get_user(session=session, user_id=user_id)
 
     if user:

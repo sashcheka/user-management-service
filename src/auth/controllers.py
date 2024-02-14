@@ -67,10 +67,10 @@ def reset_password_controller(email: str):
             message=message,
         )
         return {"message": f"Password reset email sent on {email}."}
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred: " + str(e),
+            detail="An error occurred.",
         )
 
 
@@ -81,8 +81,8 @@ def consume_message_controller():
             return {"message": "Message consumed", "data": message}
         else:
             return {"message": "No messages in the queue."}
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred: " + str(e),
+            detail="An error occurred.",
         )

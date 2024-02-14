@@ -90,11 +90,10 @@ async def delete_user_info_controller(
             session=session,
             user=user,
         )
-    except Exception as e:
-        await session.rollback()
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred: {str(e)}",
+            detail=f"An error occurred.",
         )
 
 

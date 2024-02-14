@@ -51,7 +51,6 @@ async def create_user(
 
     except IntegrityError as e:
         logging.exception(f"Failed to sign up user: {user_in.username}. Exception: {e}")
-        await session.rollback()
 
         fields_to_check = [
             "username",
@@ -70,10 +69,9 @@ async def create_user(
 
     except Exception as e:
         logging.error(f"Failed to sign up user: {user_in.username}. Error: {e}")
-        await session.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred: {str(e)}",
+            detail=f"An error occurred.",
         )
 
 

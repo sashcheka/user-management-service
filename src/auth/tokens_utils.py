@@ -36,10 +36,10 @@ def get_payload_by_token(token: str) -> dict:
     except jwt.ExpiredSignatureError:
         raise_unauthorized_error("Invalid refresh token")
 
-    except jwt.PyJWTError as jwt_error:
+    except jwt.PyJWTError:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"JWT error: {str(jwt_error)}",
+            detail=f"JWT error.",
         )
 
 
