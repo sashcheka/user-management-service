@@ -1,13 +1,13 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, SecretStr
 
 
 class UserLoginSchema(BaseModel):
-    username: str = "username"
-    password: str = "password"
+    username: str
+    password: SecretStr
 
 
 class RefreshTokenSchema(BaseModel):
-    refresh_token: str = "refresh_token"
+    refresh_token: str
 
 
 class EmailSchema(BaseModel):
