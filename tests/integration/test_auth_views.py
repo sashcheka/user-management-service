@@ -1,6 +1,5 @@
 import pytest
 from httpx import AsyncClient
-
 from tests.utils import assert_response_user_data, login_and_get_access_token
 
 
