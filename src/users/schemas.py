@@ -17,7 +17,6 @@ class UserCreateSchema(BaseModel):
 
 
 class UserSchema(UserCreateSchema):
-    id: UUID4
     is_blocked: bool = Field(default=False)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     modified_at: datetime | None = None
