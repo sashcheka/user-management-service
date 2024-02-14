@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.dependencies import get_active_auth_user, get_auth_user
+from auth.dependencies import get_active_auth_user
 from core.db_helper import db_helper
 from models import User
 
@@ -56,7 +56,7 @@ async def delete_self_info(
 @router.get("/{user_id}/")
 async def get_user_info(
     user: User = Depends(user_by_id),
-    current_user: User = Depends(get_auth_user),
+    current_user: User = Depends(get_active_auth_user),
     _=Depends(verify_admin_or_moderator_access),
 ):
     return await get_user_info_controller(
@@ -70,7 +70,7 @@ async def update_user_info(
     user_update: UserUpdatePartialSchema,
     user: User = Depends(user_by_id),
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
-    current_user: User = Depends(get_auth_user),
+    current_user: User = Depends(get_active_auth_user),
     _=Depends(verify_admin_or_moderator_access),
 ):
     return await update_user_info_controller(
@@ -85,7 +85,7 @@ async def update_user_info(
 async def delete_user_info(
     user: User = Depends(user_by_id),
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
-    current_user: User = Depends(get_auth_user),
+    current_user: User = Depends(get_active_auth_user),
     _=Depends(verify_admin_or_moderator_access),
 ):
     return await delete_user_info_controller(
@@ -100,7 +100,7 @@ async def delete_user_info(
 async def list_users_info(
     query_params: UsersListQueryParams = Depends(get_users_list_query_params),
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
-    current_user: User = Depends(get_auth_user),
+    current_user: User = Depends(get_active_auth_user),
     _=Depends(verify_admin_or_moderator_access),
 ):
     return await list_users_info_controller(
