@@ -26,7 +26,8 @@ COPY --from=builder /app/wheels /wheels
 RUN pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels
 
-COPY . /app entrypoint.sh /usr/local/bin/
+COPY . /app
+COPY entrypoint.sh /usr/local/bin/
 
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
