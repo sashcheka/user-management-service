@@ -23,8 +23,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 COPY --from=builder /app/wheels /wheels
-RUN pip install --no-cache /wheels/*
+RUN pip install --no-cache-dir /wheels/* && \
+    rm -rf /wheels
 
-COPY . /app
+COPY . /app entrypoint.sh /usr/local/bin/
 
-CMD ["python", "-m", "main.py"]
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["entrypoint.sh"]

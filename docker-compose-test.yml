@@ -5,12 +5,9 @@ services:
       - common_network
     build:
       context: .
-      dockerfile: src/Dockerfile
-    command: sh -c "alembic upgrade head && python src/main.py"
+      dockerfile: Dockerfile
     ports:
       - "8001:8000"
-    volumes:
-      - .:/app
     depends_on:
       db-test:
         condition: service_healthy
