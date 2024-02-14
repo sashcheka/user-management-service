@@ -3,7 +3,12 @@ from datetime import datetime
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.crud import create_user, get_or_create_group
+from auth.crud import (
+    check_if_user_exists_with_this_email_or_username,
+    create_user,
+    get_or_create_group,
+    get_user_by_username,
+)
 from auth.schemas import UserLoginSchema
 from auth.tokens_utils import generate_tokens, verify_refresh_token
 from integrations.localstack.localstack import s3_client
@@ -18,6 +23,18 @@ async def create_user_controller(
     session: AsyncSession,
     image: UploadFile,
 ) -> User:
+    existing_user = await check_if_user_exists_with_this_email_or_username(
+        session=session,
+        username=user_in.username,
+        email=user_in.email,
+    )
+
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"User with this email or username already exists.",
+        )
+
     image_file = await image.read(size=image.size)
     image_s3_path = await s3_client.upload_image_to_localstack_and_get_path(
         image_file=image_file

@@ -1,11 +1,10 @@
 import logging
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.schemas import UserLoginSchema
 from core.password_utils import hash_password
 from models import Group
 from models.user import User
@@ -50,7 +49,7 @@ async def create_user(
         return user
 
     except IntegrityError as e:
-        logging.exception(f"Failed to sign up user: {user_in.username}. Exception: {e}")
+        logging.exception(f"Failed to sign up user: {user_in.username}.")
 
         fields_to_check = [
             "username",
@@ -68,7 +67,7 @@ async def create_user(
         )
 
     except Exception as e:
-        logging.error(f"Failed to sign up user: {user_in.username}. Error: {e}")
+        logging.error(f"Failed to sign up user: {user_in.username}.")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred.",
@@ -77,10 +76,20 @@ async def create_user(
 
 async def get_user_by_username(
     session: AsyncSession,
-    user_in: UserLoginSchema,
+    username: str,
+) -> User | None:
+    result = await session.execute(select(User).where(User.username == username))
+    user = result.scalar()
+    return user
+
+
+async def check_if_user_exists_with_this_email_or_username(
+    session: AsyncSession,
+    username: str,
+    email: str,
 ) -> User | None:
     result = await session.execute(
-        select(User).where(User.username == user_in.username)
+        select(User).where(or_(User.email == email, User.username == username))
     )
     user = result.scalar()
     return user

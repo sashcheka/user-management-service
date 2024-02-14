@@ -23,7 +23,7 @@ async def validate_auth_user(
     user_in: UserLoginSchema,
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
 ) -> User:
-    user = await get_user_by_username(session=session, user_in=user_in)
+    user = await get_user_by_username(session=session, username=user_in.username)
     if not user:
         logging.exception(f"Failed to login user: {user_in.username}.")
         raise unauthed_exp
