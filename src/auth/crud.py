@@ -39,7 +39,7 @@ async def create_user(
     image_s3_path: str,
 ) -> User:
     user_data = user_in.model_dump()
-    user_data["password"] = hash_password(user_data["password"])
+    user_data["password"] = hash_password(str(user_data["password"]))
     user_data["image_s3_path"] = image_s3_path
 
     try:

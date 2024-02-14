@@ -29,7 +29,7 @@ async def validate_auth_user(
         raise unauthed_exp
 
     if not validate_password(
-        password=user_in.password,
+        password=str(user_in.password),
         hashed_password=user.password,
     ):
         logging.exception(f"Failed to login user: {user_in.username}.")
