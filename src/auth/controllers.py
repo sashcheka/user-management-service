@@ -7,10 +7,13 @@ from auth.crud import (
     check_if_user_exists_with_this_email_or_username,
     create_user,
     get_or_create_group,
-    get_user_by_username,
 )
 from auth.schemas import UserLoginSchema
-from auth.tokens_utils import generate_tokens, verify_refresh_token
+from auth.tokens_utils import (
+    generate_tokens,
+    verify_refresh_token,
+)
+from core.redis_helper import add_refresh_token_to_redis
 from integrations.localstack.localstack import s3_client
 from integrations.rabbitmq.consumer import get_single_message
 from integrations.rabbitmq.publisher import publish_message
@@ -61,7 +64,9 @@ def login_user_controller(user: UserLoginSchema):
 
 def refresh_token_controller(refresh_token: str):
     payload = verify_refresh_token(refresh_token)
-    return generate_tokens(payload)
+    tokens = generate_tokens(payload)
+    add_refresh_token_to_redis(tokens["refresh_token"])
+    return tokens
 
 
 def reset_password_controller(email: str):
