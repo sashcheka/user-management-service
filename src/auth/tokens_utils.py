@@ -5,10 +5,7 @@ from fastapi import HTTPException, status
 
 from auth.jwt_utils import decode_jwt, encode_jwt
 from core.config import settings
-from core.redis_helper import (
-    token_exists_in_redis,
-    delete_token_from_redis,
-)
+from core.redis_helper import delete_token_from_redis, token_exists_in_redis
 
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.auth_jwt.ACCESS_TOKEN_EXPIRE_MINUTES
 REFRESH_TOKEN_EXPIRE_MINUTES = settings.auth_jwt.REFRESH_TOKEN_EXPIRE_MINUTES

@@ -9,10 +9,7 @@ from auth.crud import (
     get_or_create_group,
 )
 from auth.schemas import UserLoginSchema
-from auth.tokens_utils import (
-    generate_tokens,
-    verify_refresh_token,
-)
+from auth.tokens_utils import generate_tokens, verify_refresh_token
 from core.redis_helper import add_refresh_token_to_redis
 from integrations.localstack.localstack import s3_client
 from integrations.rabbitmq.consumer import get_single_message
