@@ -35,12 +35,12 @@ def get_payload_by_token(token: str) -> dict:
         )
 
 
-def verify_refresh_token(token: str) -> dict:
+def verify_refresh_token_and_get_payload(token: str) -> dict:
     if not token_exists_in_redis(token):
         raise_unauthorized_error("Invalid refresh token")
     delete_token_from_redis(token)
-
-    return get_payload_by_token(token)
+    payload = get_payload_by_token(token)
+    return payload
 
 
 def create_access_token(payload: dict):
