@@ -4,6 +4,7 @@ from fastapi import APIRouter, Body, Depends, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db_helper import db_helper
+from models import User
 from users.schemas import UserCreateSchema, UserSchema
 
 from .controllers import (
@@ -63,10 +64,13 @@ def debug_decode_token(payload: dict = Depends(get_auth_user_payload)):
 @router.post("/reset-password/")
 def reset_password(
     email_in: EmailSchema,
-    _: UserSchema = Depends(get_active_auth_user),
+    user: User = Depends(get_active_auth_user),
 ):
-    logging.info(f"Reset password endpoint called for user: {_.username}.")
-    return reset_password_controller(email=email_in.email)
+    logging.info(f"Reset password endpoint called for user: {user.username}.")
+    return reset_password_controller(
+        email=email_in.email,
+        user=user,
+    )
 
 
 @router.get("/consume-message/")
