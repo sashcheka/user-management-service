@@ -58,7 +58,7 @@ async def test_reset_password(
     assert response.status_code == 200, response.text
     assert (
         response.json()["message"]
-        == "Password reset email sent on test_email@example.com."
+        == "Password reset message sent on email: test_email@example.com."
     )
 
 
