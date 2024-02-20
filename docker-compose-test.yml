@@ -30,7 +30,7 @@ services:
       start_period: 15s
 
   db-test:
-    image: postgres:alpine
+    image: postgres:16.2-alpine3.19
     networks:
       - common_network
     volumes:
@@ -47,7 +47,7 @@ services:
       start_period: 15s
 
   redis-test:
-    image: redis:alpine
+    image: redis:alpine3.19
     networks:
       - common_network
     ports:
@@ -60,7 +60,7 @@ services:
       start_period: 15s
 
   rabbitmq-test:
-    image: rabbitmq:3-management-alpine
+    image: rabbitmq:3.12.13-management-alpine
     networks:
       - common_network
     ports:
@@ -76,7 +76,7 @@ services:
       start_period: 15s
 
   localstack-test:
-    image: localstack/localstack
+    image: localstack/localstack:3.1
     networks:
       - common_network
     ports:
