@@ -62,21 +62,21 @@ async def test_reset_password(
     )
 
 
-# @pytest.mark.asyncio
-# @pytest.mark.asyncio
-# async def test_consume_message(
-#     async_client: AsyncClient,
-#     mock_user_login_data: dict,
-# ):
-#     access_token = await login_and_get_access_token(
-#         async_client,
-#         mock_user_login_data,
-#     )
-#
-#     response = await async_client.get(
-#         "/auth/consume-message/",
-#         headers={"Authorization": f"Bearer {access_token}"},
-#     )
-#
-#     assert response.status_code == 200, response.text
-#     assert response.json()["message"] == "Message consumed"
+@pytest.mark.asyncio
+@pytest.mark.asyncio
+async def test_consume_message(
+    async_client: AsyncClient,
+    mock_user_login_data: dict,
+):
+    access_token = await login_and_get_access_token(
+        async_client,
+        mock_user_login_data,
+    )
+
+    response = await async_client.get(
+        "/auth/consume-message/",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json()["message"] == "Message consumed"
