@@ -10,8 +10,15 @@ def get_single_message(queue):
     params = pika.URLParameters(url)
     connection = pika.BlockingConnection(params)
     channel = connection.channel()
-
-    channel.queue_declare(queue=queue)
+    dlq_name = "reset-password-queue-dlq"
+    dlx_name = "reset-password-queue-dlx"
+    arguments = {
+        "x-dead-letter-exchange": dlx_name,
+        "x-dead-letter-routing-key": dlq_name,
+        "x-message-ttl": 60000,
+        "x-max-length": 10000,
+    }
+    channel.queue_declare(queue=queue, arguments=arguments, durable=True)
     method_frame, header_frame, body = channel.basic_get(
         queue=queue,
         auto_ack=True,
