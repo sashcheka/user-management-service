@@ -12,6 +12,7 @@ from .controllers import (
     create_user_controller,
     login_user_controller,
     refresh_token_controller,
+    reset_password_check_controller,
     reset_password_controller,
 )
 from .dependencies import (
@@ -19,7 +20,12 @@ from .dependencies import (
     get_auth_user_payload,
     get_user_signup_data,
 )
-from .schemas import EmailSchema, RefreshTokenSchema, UserLoginSchema
+from .schemas import (
+    EmailSchema,
+    PasswordChangeSchema,
+    RefreshTokenSchema,
+    UserLoginSchema,
+)
 from .validators import validate_auth_user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -78,3 +84,17 @@ async def consume_message(
     _: UserSchema = Depends(get_active_auth_user),
 ):
     return consume_message_controller()
+
+
+@router.post("/reset-password-check/{token}")
+async def reset_password_check(
+    token: str,
+    new_password: PasswordChangeSchema,
+    session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
+    _: UserSchema = Depends(get_active_auth_user),
+):
+    return await reset_password_check_controller(
+        token=token,
+        new_password=new_password,
+        session=session,
+    )
