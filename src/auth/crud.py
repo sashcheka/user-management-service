@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import HTTPException, status
-from sqlalchemy import or_, select
+from sqlalchemy import or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -39,7 +39,7 @@ async def create_user(
     image_s3_path: str,
 ) -> User:
     user_data = user_in.model_dump()
-    user_data["password"] = hash_password(str(user_data["password"]))
+    user_data["password"] = hash_password(user_data["password"].get_secret_value())
     user_data["image_s3_path"] = image_s3_path
 
     try:
@@ -93,3 +93,16 @@ async def check_if_user_exists_with_this_email_or_username(
     )
     user = result.scalar()
     return user
+
+
+async def update_user_password(
+    session: AsyncSession,
+    user_id: str,
+    new_password: str,
+) -> None:
+    hashed_password = hash_password(new_password)
+
+    await session.execute(
+        update(User).where(User.id == user_id).values(password=hashed_password)
+    )
+    await session.commit()
