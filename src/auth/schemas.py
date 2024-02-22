@@ -17,6 +17,10 @@ class EmailSchema(BaseModel):
     email: EmailStr
 
 
+class PasswordChangeSchema(BaseModel):
+    new_password: SecretStr
+
+
 class ResetPasswordMessageSchema(BaseModel):
     id: UUID4 = Field(default_factory=uuid.uuid4)
     user_id: UUID4 = Field(...)
@@ -25,7 +29,7 @@ class ResetPasswordMessageSchema(BaseModel):
     body: str = Field(default_factory=str)
 
     def generate_body(self, token: str):
-        self.body = f"Link to reset your password: https://yourwebsite.com/reset-password/{token}"
+        self.body = f"Link to reset your password: http://localhost:8001/auth/reset-password-check/{token}"
 
     published_at: datetime = Field(default_factory=datetime.utcnow)
     sent_at: datetime | None = Field(default=None)
