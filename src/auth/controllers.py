@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 
+import jwt
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,15 +9,25 @@ from auth.crud import (
     check_if_user_exists_with_this_email_or_username,
     create_user,
     get_or_create_group,
+    update_user_password,
 )
 from auth.jwt_utils import encode_jwt
-from auth.schemas import ResetPasswordMessageSchema, UserLoginSchema
-from auth.tokens_utils import generate_tokens, verify_refresh_token_and_get_payload
+from auth.schemas import (
+    PasswordChangeSchema,
+    ResetPasswordMessageSchema,
+    UserLoginSchema,
+)
+from auth.tokens_utils import (
+    generate_tokens,
+    get_payload_by_token,
+    verify_refresh_token_and_get_payload,
+)
 from core.redis_helper import add_refresh_token_to_redis
 from integrations.localstack.localstack import s3_client
 from integrations.rabbitmq.consumer import get_single_message
 from integrations.rabbitmq.publisher import publish_message
 from models import User
+from users.crud import get_user
 from users.schemas import UserCreateSchema
 
 
@@ -101,10 +112,10 @@ def reset_password_controller(
         )
 
         return {"message": f"Password reset message sent on email: {email}."}
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred: {e}.",
+            detail=f"An error occurred.",
         )
 
 
@@ -120,3 +131,47 @@ def consume_message_controller():
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred.",
         )
+
+
+async def reset_password_check_controller(
+    token: str,
+    new_password: PasswordChangeSchema,
+    session: AsyncSession,
+):
+    try:
+        payload = get_payload_by_token(token)
+        user_id = payload.get("sub")
+        user = await get_user(session=session, user_id=user_id)
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found.",
+            )
+
+        await update_user_password(
+            session=session,
+            user_id=user_id,
+            new_password=new_password.new_password.get_secret_value(),
+        )
+
+        return {"message": "Password has been updated successfully."}
+
+    except jwt.ExpiredSignatureError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired."
+        ) from e
+
+    except jwt.PyJWTError as e:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="JWT validation error."
+        ) from e
+
+    except HTTPException as http_ex:
+        raise http_ex
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred.",
+        ) from e
