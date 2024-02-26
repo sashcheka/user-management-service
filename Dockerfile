@@ -11,7 +11,7 @@ ENV POETRY_VIRTUALENVS_CREATE=false \
 
 COPY poetry.lock pyproject.toml /app/
 
-RUN poetry install --no-root --with dev &&  \
+RUN poetry install --no-root --with dev && \
     poetry export -f requirements.txt --output requirements.txt --with dev && \
     pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
