@@ -23,7 +23,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 COPY --from=builder /app/wheels /wheels
-RUN pip install --no-cache /wheels/*
+RUN apk update && apk add --no-cache curl && pip install --no-cache /wheels/*
 
 COPY . /app
 
