@@ -7,6 +7,7 @@ from sqlalchemy import asc, desc, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from auth.crud import get_or_create_group
 from models import Role
 from models.user import User
 
@@ -20,7 +21,17 @@ async def update_user(
     partial: bool = False,
 ) -> User:
     for key, value in user_update.model_dump(exclude_unset=partial).items():
-        setattr(user, key, value)
+        if key == "group_name" and value is not None:
+            group = await get_or_create_group(session, user_in=user_update)
+            if group:
+                setattr(user, key, value)
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Group '{value}' does not exist and could not be created.",
+                )
+        else:
+            setattr(user, key, value)
     user.modified_at = datetime.utcnow()
 
     try:
@@ -28,8 +39,7 @@ async def update_user(
         return user
 
     except IntegrityError as e:
-
-        error_detail = "A record with similar data already exists."
+        error_detail = f"A record with similar data already exists. Error: {e}"
         if "username" in str(e.orig):
             error_detail = "A user with this USERNAME already exists."
         elif "email" in str(e.orig):
