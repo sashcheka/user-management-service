@@ -30,4 +30,3 @@ class UserUpdatePartialSchema(BaseModel):
     email: EmailStr | None = None
     role: Role | None = None
     group_name: str | None = Field(default=None, max_length=50)
-    image_s3_path: str | None = Field(default=None, max_length=50)
