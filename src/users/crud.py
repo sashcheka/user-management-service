@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, UploadFile, status
 from pydantic import UUID4
 from sqlalchemy import asc, desc, or_, select
 from sqlalchemy.exc import IntegrityError
@@ -20,41 +20,42 @@ async def update_user(
     user: User,
     partial: bool = False,
 ) -> User:
-    for key, value in user_update.model_dump(exclude_unset=partial).items():
+    update_data = user_update.model_dump(exclude_unset=partial)
+    for key, value in update_data.items():
         if key == "group_name" and value is not None:
             group = await get_or_create_group(session, user_in=user_update)
-            if group:
-                setattr(user, key, value)
-            else:
+            if not group:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"Group '{value}' does not exist and could not be created.",
                 )
-        else:
+        elif not partial or (partial and value is not None):
             setattr(user, key, value)
+
     user.modified_at = datetime.utcnow()
 
     try:
         await session.commit()
         return user
-
     except IntegrityError as e:
-        error_detail = f"A record with similar data already exists. Error: {e}"
-        if "username" in str(e.orig):
-            error_detail = "A user with this USERNAME already exists."
-        elif "email" in str(e.orig):
-            error_detail = "A user with this EMAIL already exists."
-
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=error_detail,
-        )
-
-    except Exception:
+        handle_integrity_error(e)
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred.",
+            detail="An error occurred.",
         )
+
+
+def handle_integrity_error(e):
+    error_detail = f"A record with similar data already exists. Error: {e}"
+    if "username" in str(e.orig):
+        error_detail = "A user with this USERNAME already exists."
+    elif "email" in str(e.orig):
+        error_detail = "A user with this EMAIL already exists."
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=error_detail,
+    )
 
 
 async def get_user(
