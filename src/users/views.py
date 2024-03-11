@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.dependencies import get_active_auth_user
@@ -14,6 +14,7 @@ from .controllers import (
     update_user_info_controller,
 )
 from .dependencies import (
+    get_user_update_data,
     get_users_list_query_params,
     user_by_id,
     verify_admin_or_moderator_access,
@@ -31,14 +32,16 @@ async def get_self_info(user: User = Depends(get_active_auth_user)):
 
 @router.patch("/me/")
 async def update_self_info_partial(
-    user_update: UserUpdatePartialSchema,
+    user_update: UserUpdatePartialSchema = Depends(get_user_update_data),
     user: User = Depends(get_active_auth_user),
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
+    image: UploadFile = None,
 ):
     return await update_self_user_info_partial_controller(
         session=session,
         user=user,
         user_update=user_update,
+        image=image,
     )
 
 
@@ -67,17 +70,19 @@ async def get_user_info(
 
 @router.patch("/{user_id}/")
 async def update_user_info(
-    user_update: UserUpdatePartialSchema,
+    user_update: UserUpdatePartialSchema = Depends(get_user_update_data),
     user: User = Depends(user_by_id),
     session: AsyncSession = Depends(db_helper.scoped_session_dependencies),
     current_user: User = Depends(get_active_auth_user),
     _=Depends(verify_admin_or_moderator_access),
+    image: UploadFile = None,
 ):
     return await update_user_info_controller(
         user_update=user_update,
         user=user,
         session=session,
         current_user=current_user,
+        image=image,
     )
 
 
