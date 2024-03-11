@@ -1,12 +1,13 @@
 from typing import List
 
-from fastapi import HTTPException, status
+from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models import User
 from models.role import Role
 
 from . import crud
+from .dependencies import delete_image_if_exists, upload_new_image_and_get_path
 from .query_params import UsersListQueryParams
 from .schemas import UserUpdatePartialSchema
 from .utils import ensure_user_exists, require_role
@@ -16,22 +17,26 @@ async def update_self_user_info_partial_controller(
     user_update: UserUpdatePartialSchema,
     user: User,
     session: AsyncSession,
+    image: UploadFile = None,
 ) -> User:
+    if image:
+        user.image_s3_path = await upload_new_image_and_get_path(image)
+
     updated_user = await crud.update_user(
-        session=session,
-        user=user,
-        user_update=user_update,
-        partial=True,
+        session=session, user=user, user_update=user_update, partial=True
     )
 
+    await delete_image_if_exists(user.image_s3_path)
     return updated_user
 
 
 async def delete_self_user_info_controller(
     user: User,
     session: AsyncSession,
-):
-    return await crud.delete_user(session=session, user=user)
+) -> User:
+    deleted_user = await crud.delete_user(session=session, user=user)
+    await delete_image_if_exists(user.image_s3_path)
+    return deleted_user
 
 
 async def get_user_info_controller(
@@ -57,20 +62,19 @@ async def update_user_info_controller(
     user: User,
     session: AsyncSession,
     current_user: User,
-):
-    require_role(
-        user=current_user,
-        required_role=Role.ADMIN,
-    )
+    image: UploadFile = None,
+) -> User:
+    require_role(user=current_user, required_role=Role.ADMIN)
     ensure_user_exists(user)
 
+    if image:
+        user.image_s3_path = await upload_new_image_and_get_path(image)
+
     updated_user = await crud.update_user(
-        session=session,
-        user=user,
-        user_update=user_update,
-        partial=True,
+        session=session, user=user, user_update=user_update, partial=True
     )
 
+    await delete_image_if_exists(user.image_s3_path)
     return updated_user
 
 
@@ -78,23 +82,13 @@ async def delete_user_info_controller(
     user: User,
     session: AsyncSession,
     current_user: User,
-):
-    require_role(
-        user=current_user,
-        required_role=Role.ADMIN,
-    )
+) -> User:
+    require_role(user=current_user, required_role=Role.ADMIN)
     ensure_user_exists(user)
 
-    try:
-        return await crud.delete_user(
-            session=session,
-            user=user,
-        )
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred.",
-        )
+    deleted_user = await crud.delete_user(session=session, user=user)
+    await delete_image_if_exists(user.image_s3_path)
+    return deleted_user
 
 
 async def list_users_info_controller(
