@@ -52,5 +52,10 @@ class LocalStackS3:
         image_url = f"{self.__url}/{self.__bucket_name}/{object_name}"
         return image_url
 
+    async def delete_image_from_localstack(self, image_path: str):
+        object_name = image_path.split(f"{self.__url}/{self.__bucket_name}/")[-1]
+        async with self._create_s3_client() as client:
+            await client.delete_object(Bucket=self.__bucket_name, Key=object_name)
+
 
 s3_client = LocalStackS3()
