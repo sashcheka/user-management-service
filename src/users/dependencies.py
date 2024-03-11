@@ -1,16 +1,18 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, Path, Query, status
-from pydantic import UUID4
+from fastapi import Depends, Form, HTTPException, Path, Query, UploadFile, status
+from pydantic import UUID4, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.dependencies import get_active_auth_user
 from core.db_helper import db_helper
+from integrations.localstack.localstack import s3_client
 from models import User
 from models.role import Role
 
 from . import crud
 from .query_params import UsersListQueryParams
+from .schemas import UserUpdatePartialSchema
 
 
 async def user_by_id(
@@ -54,3 +56,48 @@ def get_users_list_query_params(
         sort_by=sort_by,
         order_by=order_by,
     )
+
+
+def get_user_update_data(
+    name: str | None = Form(default=None, max_length=50),
+    surname: str | None = Form(default=None, max_length=50),
+    username: str | None = Form(default=None, max_length=50),
+    phone_number: str | None = Form(default=None, max_length=20),
+    email: EmailStr | None = Form(default=None),
+    role: Role | None = Form(default=None),
+    group_name: str | None = Form(default=None, max_length=255),
+) -> UserUpdatePartialSchema:
+    return UserUpdatePartialSchema(
+        name=name,
+        surname=surname,
+        username=username,
+        phone_number=phone_number,
+        email=email,
+        role=role,
+        group_name=group_name,
+    )
+
+
+async def upload_new_image_and_get_path(image: UploadFile):
+    try:
+        image_file = await image.read(size=image.size)
+        new_image_s3_path = await s3_client.upload_image_to_localstack_and_get_path(
+            image_file=image_file
+        )
+        return new_image_s3_path
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to upload the new image to S3. {e}",
+        )
+
+
+async def delete_image_if_exists(image_s3_path: str):
+    if image_s3_path:
+        try:
+            await s3_client.delete_image_from_localstack(image_path=image_s3_path)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to delete the old image from S3. {e}",
+            )
