@@ -45,21 +45,24 @@ async def test_update_self_info_partial(
     )
 
     user_update_data = {
-        "name": "new_test_name",
-        "surname": "new_test_surname",
+        "name": (None, "new_test_name"),
+        "surname": (None, "new_test_surname"),
     }
+
+    data = user_update_data.copy()
+    data.update(mock_files)
 
     response = await async_client.patch(
         "/user/me/",
-        json=user_update_data,
+        files=data,
         headers={"Authorization": f"Bearer {access_token}"},
     )
 
     assert response.status_code == 200, response.text
 
     updated_user_info = response.json()
-    assert updated_user_info["name"] == user_update_data["name"]
-    assert updated_user_info["surname"] == user_update_data["surname"]
+    assert updated_user_info["name"] == "new_test_name"
+    assert updated_user_info["surname"] == "new_test_surname"
 
 
 @pytest.mark.asyncio
