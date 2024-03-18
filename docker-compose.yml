@@ -9,7 +9,7 @@ services:
       dockerfile: Dockerfile
     command: sh -c "alembic upgrade head && python src/main.py"
     ports:
-      - "8000:8000"
+      - "5000:5000"
     depends_on:
       db:
         condition: service_healthy
