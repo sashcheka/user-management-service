@@ -82,6 +82,10 @@ services:
       - common_network
     ports:
       - "4566:4566"
+    environment:
+      - PERSISTENCE=1
+      - SNAPSHOT_SAVE_STRATEGY=ON_SHUTDOWN
+      - SNAPSHOT_LOAD_STRATEGY=ON_STARTUP
     volumes:
       - localstack_data:/var/lib/localstack
     healthcheck:
