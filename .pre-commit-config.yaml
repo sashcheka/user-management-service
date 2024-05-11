@@ -10,7 +10,7 @@ repos:
     rev: 24.2.0
     hooks:
       - id: black
-        language_version: python3.10
+        language_version: python3.12.2
 
   - repo: https://github.com/pre-commit/mirrors-isort
     rev: v5.10.1

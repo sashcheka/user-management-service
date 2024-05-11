@@ -19,6 +19,8 @@ async def update_self_user_info_partial_controller(
     session: AsyncSession,
     image: UploadFile = None,
 ) -> User:
+    old_image_s3_path = user.image_s3_path
+
     if image:
         user.image_s3_path = await upload_new_image_and_get_path(image)
 
@@ -26,7 +28,7 @@ async def update_self_user_info_partial_controller(
         session=session, user=user, user_update=user_update, partial=True
     )
 
-    await delete_image_if_exists(user.image_s3_path)
+    await delete_image_if_exists(old_image_s3_path)
     return updated_user
 
 
