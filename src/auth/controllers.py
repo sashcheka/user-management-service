@@ -68,8 +68,9 @@ def login_user_controller(user: UserLoginSchema):
         "username": user.username,
         "email": user.email,
     }
-
-    return generate_tokens(payload)
+    tokens = generate_tokens(payload)
+    add_refresh_token_to_redis(tokens["refresh_token"])
+    return tokens
 
 
 def refresh_token_controller(refresh_token: str):

@@ -55,10 +55,8 @@ def login(
 
 @router.post("/refresh-token/")
 def refresh_token(
-    _: UserSchema = Depends(get_active_auth_user),
     refresh_token_in: RefreshTokenSchema = Body(...),
 ):
-    logging.info(f"Refresh token endpoint called for user: {_.username}.")
     return refresh_token_controller(refresh_token=refresh_token_in.refresh_token)
 
 
