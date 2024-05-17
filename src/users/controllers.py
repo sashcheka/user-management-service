@@ -22,13 +22,15 @@ async def update_self_user_info_partial_controller(
     old_image_s3_path = user.image_s3_path
 
     if image:
-        user.image_s3_path = await upload_new_image_and_get_path(image)
+        new_image_s3_path = await upload_new_image_and_get_path(image)
+        if new_image_s3_path:
+            user.image_s3_path = new_image_s3_path
+            await delete_image_if_exists(old_image_s3_path)
 
     updated_user = await crud.update_user(
         session=session, user=user, user_update=user_update, partial=True
     )
 
-    await delete_image_if_exists(old_image_s3_path)
     return updated_user
 
 
