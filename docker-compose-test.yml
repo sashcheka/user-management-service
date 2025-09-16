@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  web-test:
+    networks:
+      - common_network
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c "alembic upgrade head && python src/main.py"
+    ports:
+      - "8001:8000"
+    depends_on:
+      db-test:
+        condition: service_healthy
+      rabbitmq-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      localstack-test:
+        condition: service_healthy
+    env_file:
+      - test.env
+    volumes:
+      - ./src:/app/src
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthcheck/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  db-test:
+    image: postgres:16.2-alpine3.19
+    networks:
+      - common_network
+    volumes:
+      - postgres_data_test:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    env_file:
+      - test.env
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  redis-test:
+    image: redis:alpine3.19
+    networks:
+      - common_network
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  rabbitmq-test:
+    image: rabbitmq:3.12.13-management-alpine
+    networks:
+      - common_network
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    volumes:
+      - rabbitmq_data_test:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  localstack-test:
+    image: localstack/localstack:3.1
+    networks:
+      - common_network
+    ports:
+      - "4567:4566"
+    volumes:
+      - localstack_data_test:/var/lib/localstack
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+volumes:
+  postgres_data_test:
+  rabbitmq_data_test:
+  localstack_data_test:
+
+networks:
+  common_network:
+    name: common_network
+    driver: bridge
