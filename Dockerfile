@@ -2,7 +2,7 @@ FROM python:3.10-alpine as builder
 
 WORKDIR /app
 
-RUN apk update && apk add --no-cache build-base && pip install poetry
+RUN apk update && apk add --no-cache build-base && pip install poetry==1.8.5
 
 ENV POETRY_VIRTUALENVS_CREATE=false \
     POETRY_NO_INTERACTION=1 \

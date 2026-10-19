@@ -11,32 +11,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v6
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v6
       with:
         python-version: '3.10'
 
     - name: Install and run pre-commit
       run: |
-        pip install pre-commit
+        python -m pip install pre-commit
         pre-commit run --all-files
 
     - name: Create test.env file
+      env:
+        TEST_ENV_FILE: ${{ secrets.TEST_ENV_FILE }}
       run: |
-        echo "${{ secrets.TEST_ENV_FILE }}" > test.env
+        if [ -n "$TEST_ENV_FILE" ]; then
+          printf '%s\n' "$TEST_ENV_FILE" > test.env
+        fi
 
     - name: Build with Docker
       run: |
-        docker-compose -f docker-compose-test.yml build --no-cache
-        docker-compose -f docker-compose-test.yml up -d
+        docker compose -f docker-compose-test.yml build --no-cache
+        docker compose -f docker-compose-test.yml up -d --wait
 
     - name: Test with Docker and Check tests coverage
       run: |
-        docker-compose -f docker-compose-test.yml run web-test pytest --cov-report term --cov=src tests/ --cov-fail-under=69
+        docker compose -f docker-compose-test.yml run --rm web-test pytest --cov-report term --cov=src tests/ --cov-fail-under=69
 
     - name: Cleanup
       if: always()
       run: |
-        docker-compose -f docker-compose-test.yml down
+        docker compose -f docker-compose-test.yml down
